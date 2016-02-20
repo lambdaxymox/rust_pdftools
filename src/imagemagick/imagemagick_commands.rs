@@ -1,11 +1,11 @@
-use std::process::Command;
+use std::process::{Command, Output};
 use std::string::String;
 use std::ffi::OsString;
 use std::path::Path;
 use std::io::{Result, Error};
 
 
-type FilePath = String;
+pub type FilePath = String;
 type FileName = String;
 
 
@@ -22,21 +22,21 @@ fn imagemagick_identify(file_path: &FilePath, args: &[String]) -> Result<String>
         command_args.push(OsString::from(arg));
     }
     
-    let output = Command::new("identify")
-                        .args(command_args.as_ref())
-                        .arg(file_path)
-                        .output();
-    /*
-    let identify_string = String::from_utf8(output.stdout)
-                                .unwrap_or_else(|e| { });
+    let output: Result<Output> = Command::new("identify")
+                                        .args(command_args.as_ref())
+                                        .arg(file_path)
+                                        .output();
     
-    Ok(identify_string)
-    */
-    Ok::<String, Error>("foo".to_string())
+    let result: Result<String> = match output {
+        Ok(output) => Ok(String::from_utf8(output.stdout).unwrap()),
+        Err(e)     => Err(e),
+    };
+    
+    result
 }
 
 
-fn imagemagick_identify_default(file_path: &FilePath) -> Result<String> {
+pub fn imagemagick_identify_default(file_path: &FilePath) -> Result<String> {
     imagemagick_identify(file_path, &[])
 }
 
