@@ -3,6 +3,7 @@ use std::string::{String, ToString};
 use std::ffi::OsString;
 use std::path::Path;
 use std::io::{Result, Error};
+use std::result;
 
 
 pub type FilePath = String;

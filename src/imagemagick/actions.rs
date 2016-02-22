@@ -1,6 +1,8 @@
 use std::io::{Result, Error};
 
 type Arguments = Vec<String>;
+type FileName = String;
+type FilePath = String;
 
 enum ImageMagickOps {
     Identify,
@@ -10,21 +12,26 @@ enum ImageMagickOps {
 }
 
 trait ImageMagickOperation {
-    fn new()                -> Self;
+    fn new(file_path: FilePath, file_name: FileName, args: Arguments) -> Self;
     fn get_op_type(&self)   -> ImageMagickOps;
     fn get_arguments(&self) -> Arguments;
     fn call(&self)          -> Result<String>;
 }
 
+/*
+struct ImageMagickArgs {
+
+}
+*/
+
 struct Identify {
     file_path: FilePath,
     file_name: FileName,
-    args: Arguments,
-    action: Fn<>(),    
+    args:      Arguments,  
 }
 
 impl ImageMagickOperation for Identify {
-    fn new() -> Self {
+    fn new(file_path: FilePath, file_name: FileName, args: Arguments) -> Self {
         unimplemented!();
     }
 
@@ -36,7 +43,7 @@ impl ImageMagickOperation for Identify {
         unimplemented!();
     }
 
-    fn call(&self) -> Result<> {
+    fn call(&self) -> Result<String> {
         unimplemented!();
     }
 }
@@ -45,12 +52,11 @@ impl ImageMagickOperation for Identify {
 struct IdentifyVerbose {
     file_path: FilePath,
     file_name: FileName,
-    args: Arguments,
-    actions: Fn<>(),
+    args:      Arguments,
 }
 
 impl ImageMagickOperation for IdentifyVerbose {
-    fn new() -> Self {
+    fn new(file_path: FilePath, file_name: FileName, args: Arguments) -> Self {
         unimplemented!();
     }
 
@@ -62,7 +68,7 @@ impl ImageMagickOperation for IdentifyVerbose {
         unimplemented!();
     }
 
-    fn call(&self) -> Result<> {
+    fn call(&self) -> Result<String> {
         unimplemented!();
     }
 }
@@ -71,12 +77,11 @@ impl ImageMagickOperation for IdentifyVerbose {
 struct Mogrify {
     file_path: FilePath,
     file_name: FileName,
-    args: Arguments,
-    action: Fn<>()
+    args:      Arguments,
 }
 
 impl ImageMagickOperation for Mogrify {
-    fn new() -> Self {
+    fn new(file_path: FilePath, file_name: FileName, args: Arguments) -> Self {
         unimplemented!();
     }
 
@@ -88,7 +93,7 @@ impl ImageMagickOperation for Mogrify {
         unimplemented!();
     }
 
-    fn call(&self) -> Result<> {
+    fn call(&self) -> Result<String> {
         unimplemented!();
     }
 }
@@ -98,11 +103,10 @@ struct Convert {
     file_path: FilePath,
     file_name: FileName,
     args: Arguments,
-    action: Fn<>(),
 }
 
 impl ImageMagickOperation for Convert {
-    fn new() -> Self {
+    fn new(file_path: FilePath, file_name: FileName, args: Arguments) -> Self {
         unimplemented!();
     }
 
@@ -114,16 +118,17 @@ impl ImageMagickOperation for Convert {
         unimplemented!();
     }
 
-    fn call(&self) -> Result<> {
+    fn call(&self) -> Result<String> {
         unimplemented!();
     }
 }
 
-
+/*
 fn make_operation() -> ImageMagickOperation {
     unimplemented!();
 }
 
-fn run_operaton(op: ImageMagickOperation) -> Result<String>
+fn run_operaton(op: ImageMagickOperation) -> Result<String> {
     unimplemented!();
-
+}
+*/
