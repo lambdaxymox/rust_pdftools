@@ -35,17 +35,12 @@ fn imagemagick_command(command_name: ImageMagickCommand,
                        args: &[String]) 
     -> Result<String> {
 
-        unimplemented!();
-}
-
-fn imagemagick_identify(file_path: &FilePath, args: &[String]) -> Result<String> {
-    
     let mut command_args: Vec<OsString> = Vec::new();
     for arg in args {
         command_args.push(OsString::from(arg));
     }
-    
-    let output: Result<Output> = Command::new("identify")
+
+    let output: Result<Output> = Command::new(command_name.to_string())
                                         .args(command_args.as_ref())
                                         .arg(file_path)
                                         .output();
@@ -56,6 +51,10 @@ fn imagemagick_identify(file_path: &FilePath, args: &[String]) -> Result<String>
     };
     
     result
+}
+
+fn imagemagick_identify(file_path: &FilePath, args: &[String]) -> Result<String> {
+    imagemagick_command(ImageMagickCommand::Identify, file_path, args)
 }
 
 
@@ -72,42 +71,10 @@ fn imagemagick_identify_verbose(file_path: &FilePath) -> Result<String> {
 
 
 fn imagemagick_mogrify(file_path: &FilePath, args: &[String]) -> Result<String> {
-    
-    let mut command_args: Vec<OsString> = Vec::new();
-    for arg in args {
-        command_args.push(OsString::from(arg));
-    }
-
-        let output: Result<Output> = Command::new("mogrify")
-                                        .args(command_args.as_ref())
-                                        .arg(file_path)
-                                        .output();
-    
-    let result: Result<String> = match output {
-        Ok(output) => Ok(String::from_utf8(output.stdout).unwrap()),
-        Err(e)     => Err(e),
-    };
-    
-    result
+    imagemagick_command(ImageMagickCommand::Mogrify, file_path, args)
 }
 
 
 fn imagemagick_convert(file_path: &FilePath, args: &[String]) -> Result<String> {
-    
-    let mut command_args: Vec<OsString> = Vec::new();
-    for arg in args {
-        command_args.push(OsString::from(arg));
-    }
-
-        let output: Result<Output> = Command::new("convert")
-                                        .args(command_args.as_ref())
-                                        .arg(file_path)
-                                        .output();
-    
-    let result: Result<String> = match output {
-        Ok(output) => Ok(String::from_utf8(output.stdout).unwrap()),
-        Err(e)     => Err(e),
-    };
-    
-    result
+    imagemagick_command(ImageMagickCommand::Convert, file_path, args)
 }
