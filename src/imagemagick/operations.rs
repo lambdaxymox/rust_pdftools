@@ -1,8 +1,5 @@
 use std::io::{Result, Error};
-use super::imagemagick_commands::imagemagick_identify_default;
-use super::imagemagick_commands::imagemagick_identify_verbose;
-use super::imagemagick_commands::imagemagick_mogrify;
-use super::imagemagick_commands::imagemagick_convert;
+use super::imagemagick_commands;
 
 
 type Arguments = Vec<String>;
@@ -53,7 +50,7 @@ impl ImageMagickOperation for Identify {
     }
 
     fn call(&self) -> Result<String> {
-        unimplemented!();
+        imagemagick_commands::imagemagick_identify_default(&self.args.file_path)
     }
 }
 
@@ -82,7 +79,7 @@ impl ImageMagickOperation for IdentifyVerbose {
     }
 
     fn call(&self) -> Result<String> {
-        unimplemented!();
+        imagemagick_commands::imagemagick_identify_verbose(&self.args.file_path)
     }
 }
 
@@ -140,16 +137,19 @@ impl ImageMagickOperation for Convert {
     }
 
     fn call(&self) -> Result<String> {
-        unimplemented!();
+        unimplemented!()
     }
 }
 
-/*
-fn make_operation() -> ImageMagickOperation {
+
+fn make_operation<T>() -> T
+    where T: ImageMagickOperation {
+
     unimplemented!();
 }
 
-fn run_operaton(op: ImageMagickOperation) -> Result<String> {
-    unimplemented!();
+fn run_operation<T>(op: &T) -> Result<String>
+    where T: ImageMagickOperation {
+
+    op.call()
 }
-*/
