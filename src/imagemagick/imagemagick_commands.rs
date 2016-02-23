@@ -16,10 +16,6 @@ enum ImageMagickCommand {
     Convert,
 }
 
-impl ImageMagickCommand {
-
-}
-
 impl ToString for ImageMagickCommand {
     fn to_string(&self) -> String {
         match *self {
@@ -54,6 +50,7 @@ fn imagemagick_command(command_name: ImageMagickCommand,
     result
 }
 
+#[inline]
 fn imagemagick_identify(file_path: &FilePath, args: &[String]) -> Result<String> {
     imagemagick_command(ImageMagickCommand::Identify, file_path, args)
 }
@@ -64,18 +61,18 @@ pub fn imagemagick_identify_default(file_path: &FilePath) -> Result<String> {
 }
 
 
-fn imagemagick_identify_verbose(file_path: &FilePath) -> Result<String> {
+pub fn imagemagick_identify_verbose(file_path: &FilePath) -> Result<String> {
     let args = ["-verbose".to_string()];
 
     imagemagick_identify(file_path, &args)
 }
 
 
-fn imagemagick_mogrify(file_path: &FilePath, args: &[String]) -> Result<String> {
+pub fn imagemagick_mogrify(file_path: &FilePath, args: &[String]) -> Result<String> {
     imagemagick_command(ImageMagickCommand::Mogrify, file_path, args)
 }
 
 
-fn imagemagick_convert(file_path: &FilePath, args: &[String]) -> Result<String> {
+pub fn imagemagick_convert(file_path: &FilePath, args: &[String]) -> Result<String> {
     imagemagick_command(ImageMagickCommand::Convert, file_path, args)
 }

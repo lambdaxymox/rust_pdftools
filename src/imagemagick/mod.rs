@@ -1,2 +1,3 @@
-pub mod imagemagick_commands;
-pub mod actions;
+mod image_ops;
+mod imagemagick_commands;
+pub mod operations;
