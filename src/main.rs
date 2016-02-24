@@ -2,6 +2,7 @@ extern crate rust_pdftools;
 
 //use rust_pdftools::imagemagick::imagemagick_commands as commands;
 use rust_pdftools::imagemagick::operations as ops;
+use rust_pdftools::image_tools::image_ops;
 use std::env;
 
 fn usage() -> &'static str {
