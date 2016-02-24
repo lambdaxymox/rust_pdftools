@@ -1,8 +1,9 @@
 use std::io::Result;
+use std::result;
 use std::collections::HashMap;
 use std::vec::Vec;
 use std::cmp::{Eq, PartialEq};
-use std::hash::{Hash, Hasher, SipHasher};
+use std::hash::{Hash, Hasher};
 
 
 type Pixels = usize;
@@ -104,7 +105,7 @@ impl ElementaryPageOperations {
     }
 }
 
-
+#[derive(Clone)]
 struct CompoundPageOperation {
     page_name: FileName,
     page_path: FilePath,
@@ -138,7 +139,7 @@ impl CompoundPageOperation {
 }
 
 
-#[derive(Eq)]
+#[derive(Clone, Eq)]
 struct Page {
     file_name: FileName,
     file_extension: ImageFileFormat,
@@ -206,12 +207,20 @@ impl OperationSchedule {
         }
     }
     
-    fn add_action(&self, page: Page, op: CompoundPageOperation) {
-        unimplemented!();
+    fn add_action(&mut self, page: Page, op: CompoundPageOperation) {
+        self.schedule.insert(page, op);
     }
 
-    fn build_schedule(&self, pages: &[Page], ops: &[CompoundPageOperation]) {
-        unimplemented!();
+    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, ()> {
+        if pages.len() == ops.len() {
+            for page_number in 0..pages.len() {
+                self.add_action(pages[page_number].clone(), ops[page_number].clone());
+            }
+        } else {
+            
+        }
+
+
     }
 
     fn run_schedule(schedule: OperationSchedule) -> OperationResult {
