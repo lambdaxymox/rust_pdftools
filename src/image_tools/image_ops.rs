@@ -1,5 +1,5 @@
-use std::io::Result;
-use std::result;
+use std::io::Result as IoResult;
+use std::result::Result;
 use std::collections::HashMap;
 use std::vec::Vec;
 use std::cmp::{Eq, PartialEq};
@@ -72,21 +72,20 @@ enum PageOps {
 }
 
 trait ElementaryPageOperations {
-    fn identify(path: FilePath)                -> Result<String>;
-    fn rescale(amount: Pixels, dir: Direction) -> Result<String>;
-    fn expand_left_edge(amount: Pixels)        -> Result<String>;
-    fn expand_right_edge(amount: Pixels)       -> Result<String>;
-    fn expand_top_edge(amount: Pixels)         -> Result<String>;
-    fn expand_bottom_edge(amount: Pixels)      -> Result<String>;
-    fn trim_left_edge(amount: Pixels)          -> Result<String>;
-    fn trim_right_edge(amount: Pixels)         -> Result<String>;
-    fn trim_top_edge(amount: Pixels)           -> Result<String>;
-    fn trim_bottom_edge(amount: Pixels)        -> Result<String>;
-    fn set_resolution(res: ImageResolution)    -> Result<String>;
+    fn identify(path: FilePath)                -> IoResult<String>;
+    fn rescale(amount: Pixels, dir: Direction) -> IoResult<String>;
+    fn expand_left_edge(amount: Pixels)        -> IoResult<String>;
+    fn expand_right_edge(amount: Pixels)       -> IoResult<String>;
+    fn expand_top_edge(amount: Pixels)         -> IoResult<String>;
+    fn expand_bottom_edge(amount: Pixels)      -> IoResult<String>;
+    fn trim_left_edge(amount: Pixels)          -> IoResult<String>;
+    fn trim_right_edge(amount: Pixels)         -> IoResult<String>;
+    fn trim_top_edge(amount: Pixels)           -> IoResult<String>;
+    fn trim_bottom_edge(amount: Pixels)        -> IoResult<String>;
+    fn set_resolution(res: ImageResolution)    -> IoResult<String>;
 }
 
-impl ElementaryPageOperations {
-    fn run_operation<Op>(page_op: PageOps) -> Result<String> 
+fn run_operation<Op>(page_op: PageOps) -> IoResult<String> 
         where Op: ElementaryPageOperations {
 
         match page_op {
@@ -103,7 +102,7 @@ impl ElementaryPageOperations {
             PageOps::SetResolution(res)       => Op::set_resolution(res),
         }
     }
-}
+
 
 #[derive(Clone)]
 struct CompoundPageOperation {
@@ -126,7 +125,7 @@ impl CompoundPageOperation {
         }
     }
 
-    fn run_operation<Op>(&self) -> Result<String>
+    fn run_operation<Op>(&self) -> IoResult<String>
         where Op: ElementaryPageOperations {
 
         unimplemented!();
@@ -196,9 +195,12 @@ struct OperationSchedule {
 
 
 struct OperationResult {
-    results: Vec<Result<String>>,
+    results: Vec<IoResult<String>>,
 }
 
+enum OperationScheduleError {
+    LengthMismatch,
+}
 
 impl OperationSchedule {
     fn new() -> Self {
@@ -211,19 +213,25 @@ impl OperationSchedule {
         self.schedule.insert(page, op);
     }
 
-    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, ()> {
+    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, OperationScheduleError> {
         if pages.len() == ops.len() {
+
+            let mut schedule = OperationSchedule::new();
+
             for page_number in 0..pages.len() {
-                self.add_action(pages[page_number].clone(), ops[page_number].clone());
+                schedule.add_action(pages[page_number].clone(), ops[page_number].clone());
             }
+
+            Ok(schedule)
+        
         } else {
-            ()
+            Err(OperationScheduleError::LengthMismatch)
         }
 
 
     }
 
-    fn run_schedule(schedule: OperationSchedule) -> OperationResult {
+    fn run_schedule(schedule: &OperationSchedule) -> OperationResult {
         unimplemented!();
     }
     
