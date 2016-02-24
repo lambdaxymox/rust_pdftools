@@ -70,7 +70,7 @@ enum PageOps {
 }
 
 trait ElementaryPageOperations {
-    fn identify(path: &FilePath)               -> Result<String>;
+    fn identify(path: FilePath)                -> Result<String>;
     fn rescale(amount: Pixels, dir: Direction) -> Result<String>;
     fn expand_left_edge(amount: Pixels)        -> Result<String>;
     fn expand_right_edge(amount: Pixels)       -> Result<String>;
@@ -84,7 +84,23 @@ trait ElementaryPageOperations {
 }
 
 impl ElementaryPageOperations {
+    fn run_operation<Op>(page_op: PageOps) -> Result<String> 
+        where Op: ElementaryPageOperations {
 
+        match page_op {
+            PageOps::Identify(path)           => Op::identify(path),
+            PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
+            PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
+            PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
+            PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
+            PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
+            PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
+            PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
+            PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
+            PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
+            PageOps::SetResolution(res)       => Op::set_resolution(res),
+        }
+    }
 }
 
 
@@ -159,21 +175,23 @@ impl Hash for Page {
 struct OperationSchedule {
     schedule: HashMap<Page, CompoundPageOperation>, 
 }
-/*
+
+
 struct OperationResult {
-    // Results from each page operation
+    results: Vec<Result<String>>,
 }
-*/
+
+
 impl OperationSchedule {
     fn new() -> Self {
         OperationSchedule {
             schedule: HashMap::new(),
         }
     }
-    /*
+    
     fn run_schedule(schedule: OperationSchedule) -> OperationResult {
         unimplemented!();
     }
-    */
+    
 }
 
