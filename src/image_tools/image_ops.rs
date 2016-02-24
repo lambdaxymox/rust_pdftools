@@ -1,6 +1,8 @@
 use std::io::Result as IoResult;
 use std::result::Result;
+use std::iter::Iterator;
 use std::collections::HashMap;
+use std::collections::hash_map;
 use std::vec::Vec;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
@@ -86,22 +88,22 @@ trait ElementaryPageOperations {
 }
 
 fn run_operation<Op>(page_op: PageOps) -> IoResult<String> 
-        where Op: ElementaryPageOperations {
+    where Op: ElementaryPageOperations {
 
-        match page_op {
-            PageOps::Identify(path)           => Op::identify(path),
-            PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
-            PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
-            PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
-            PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
-            PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
-            PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
-            PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
-            PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
-            PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
-            PageOps::SetResolution(res)       => Op::set_resolution(res),
-        }
+    match page_op {
+        PageOps::Identify(path)           => Op::identify(path),
+        PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
+        PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
+        PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
+        PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
+        PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
+        PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
+        PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
+        PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
+        PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
+        PageOps::SetResolution(res)       => Op::set_resolution(res),
     }
+}
 
 
 #[derive(Clone)]
@@ -121,19 +123,22 @@ impl CompoundPageOperation {
         CompoundPageOperation {
             page_name: page_name,
             page_path: page_path,
-            ops: vec
+            ops: vec,
         }
     }
 
-    fn run_operation<Op>(&self) -> IoResult<String>
+    fn run_operation<Op>(&self) -> Vec<IoResult<String>>
         where Op: ElementaryPageOperations {
 
-        unimplemented!();
-/*
-        for op in self.ops {
-            Op::run_operation(op)
+        let mut results: Vec<_> = Vec::new();
+
+        for op in self.ops.iter() {
+            let res = run_operation::<Op>(op.clone());
+            results.push(res);
         }
-*/        
+
+        results
+       
     }
 }
 
@@ -149,11 +154,11 @@ struct Page {
 
 impl Page {
     fn new  ( 
-                file_name: FileName, 
-                file_extension: ImageFileFormat, 
-                file_path: FilePath, 
-                dimensions: ImageDimensions, 
-                resolution: ImageResolution
+            file_name: FileName, 
+            file_extension: ImageFileFormat, 
+            file_path: FilePath, 
+            dimensions: ImageDimensions, 
+            resolution: ImageResolution
             ) -> Page 
     {
         Page {
@@ -194,7 +199,7 @@ struct OperationSchedule {
 }
 
 
-struct OperationResult {
+struct OperationResults {
     results: Vec<IoResult<String>>,
 }
 
@@ -209,7 +214,7 @@ impl OperationSchedule {
         }
     }
     
-    fn add_action(&mut self, page: Page, op: CompoundPageOperation) {
+    fn add_operation(&mut self, page: Page, op: CompoundPageOperation) {
         self.schedule.insert(page, op);
     }
 
@@ -219,7 +224,7 @@ impl OperationSchedule {
             let mut schedule = OperationSchedule::new();
 
             for page_number in 0..pages.len() {
-                schedule.add_action(pages[page_number].clone(), ops[page_number].clone());
+                schedule.add_operation(pages[page_number].clone(), ops[page_number].clone());
             }
 
             Ok(schedule)
@@ -231,9 +236,21 @@ impl OperationSchedule {
 
     }
 
-    fn run_schedule(schedule: &OperationSchedule) -> OperationResult {
+    fn run_schedule(schedule: &OperationSchedule) -> OperationResults {
         unimplemented!();
     }
     
 }
 
+struct OperationScheduleIterator<'a> {
+    inner:  hash_map::Iter<'a, Page, CompoundPageOperation>
+}
+
+impl<'a> Iterator for OperationScheduleIterator<'a> {
+    type Item = (&'a Page, &'a CompoundPageOperation);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+}
