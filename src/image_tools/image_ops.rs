@@ -1,5 +1,6 @@
 use std::io::Result;
 use std::collections::HashMap;
+use std::vec::Vec;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher, SipHasher};
 
@@ -18,7 +19,7 @@ enum ResolutionUnits {
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 enum Direction {
-    Horizonal,
+    Horizontal,
     Vertical,
 }
 
@@ -112,11 +113,27 @@ struct CompoundPageOperation {
 
 impl CompoundPageOperation {
     fn new(page_name: FileName, page_path: FilePath, ops: &[PageOps]) -> CompoundPageOperation {
-        unimplemented!();
+        let mut vec = Vec::new();
+        for op in ops.iter() {
+            vec.push(op.clone());
+        }
+
+        CompoundPageOperation {
+            page_name: page_name,
+            page_path: page_path,
+            ops: vec
+        }
     }
 
-    fn run_operation(&self) -> Result<String> {
+    fn run_operation<Op>(&self) -> Result<String>
+        where Op: ElementaryPageOperations {
+
         unimplemented!();
+/*
+        for op in self.ops {
+            Op::run_operation(op)
+        }
+*/        
     }
 }
 
@@ -151,11 +168,11 @@ impl Page {
 
 impl PartialEq for Page {
     fn eq(&self, other: &Page) -> bool {
-            self.file_name == other.file_name
+            self.file_name      == other.file_name
         &&  self.file_extension == other.file_extension
-        &&  self.file_path == other.file_path
-        &&  self.dimensions == other.dimensions
-        &&  self.resolution == other.resolution
+        &&  self.file_path      == other.file_path
+        &&  self.dimensions     == other.dimensions
+        &&  self.resolution     == other.resolution
     }
 }
 
@@ -189,6 +206,14 @@ impl OperationSchedule {
         }
     }
     
+    fn add_action(&self, page: Page, op: CompoundPageOperation) {
+        unimplemented!();
+    }
+
+    fn build_schedule(&self, pages: &[Page], ops: &[CompoundPageOperation]) {
+        unimplemented!();
+    }
+
     fn run_schedule(schedule: OperationSchedule) -> OperationResult {
         unimplemented!();
     }
