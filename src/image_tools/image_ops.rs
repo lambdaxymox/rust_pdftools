@@ -1,6 +1,6 @@
 use std::io::Result as IoResult;
 use std::result::Result;
-use std::iter::Iterator;
+use std::iter::{Iterator, IntoIterator};
 use std::collections::HashMap;
 use std::collections::hash_map;
 use std::vec::Vec;
@@ -277,8 +277,13 @@ impl OperationSchedule {
 
     }
 
-    fn run_schedule<Op>(schedule: &OperationSchedule) -> OperationResults 
-        where Op: ElementaryPageOperations {
+    fn iter(&self) -> OpSchedIter {
+        OpSchedIter {
+            inner: self.schedule.iter()
+        }
+    }
+
+    fn run_schedule(schedule: &OperationSchedule) -> OperationResults {
 /*
         let mut results = Vec::new();
 
@@ -291,18 +296,29 @@ impl OperationSchedule {
 */
         unimplemented!();
     }
-    
+
 }
 
-struct OperationScheduleIter<'a> {
+struct OpSchedIter<'a> {
     inner:  hash_map::Iter<'a, Page, CompoundPageOperation>
 }
 
-impl<'a> Iterator for OperationScheduleIter<'a> {
+impl<'a> Iterator for OpSchedIter<'a> {
     type Item = (&'a Page, &'a CompoundPageOperation);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
     }
 
+}
+
+impl<'a> IntoIterator for &'a OperationSchedule {
+    type Item = (&'a Page, &'a CompoundPageOperation);
+    type IntoIter = OpSchedIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        OpSchedIter {
+            inner: self.schedule.iter(),
+        }
+    }
 }
