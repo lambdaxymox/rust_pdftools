@@ -38,8 +38,17 @@ enum ImageFileFormat {
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 struct ImageDimensions {
-    xPixels: Pixels,
-    yPixels: Pixels,
+    x_pixels: Pixels,
+    y_pixels: Pixels,
+}
+
+impl ImageDimensions {
+    fn new(x: Pixels, y: Pixels) -> ImageDimensions {
+        ImageDimensions {
+            x_pixels: x,
+            y_pixels: y,
+        }
+    }
 }
 
 
@@ -87,21 +96,25 @@ trait ElementaryPageOperations {
     fn set_resolution(res: ImageResolution)    -> IoResult<String>;
 }
 
-fn run_operation<Op>(page_op: PageOps) -> IoResult<String> 
-    where Op: ElementaryPageOperations {
+trait RunOperation<OpTrait, OtherOp> {
+    fn run_operation(op: OtherOp) -> IoResult<String>;
+}
 
-    match page_op {
-        PageOps::Identify(path)           => Op::identify(path),
-        PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
-        PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
-        PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
-        PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
-        PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
-        PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
-        PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
-        PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
-        PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
-        PageOps::SetResolution(res)       => Op::set_resolution(res),
+impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
+    fn run_operation(page_op: PageOps) -> IoResult<String> {
+        match page_op {
+            PageOps::Identify(path)           => Op::identify(path),
+            PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
+            PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
+            PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
+            PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
+            PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
+            PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
+            PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
+            PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
+            PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
+            PageOps::SetResolution(res)       => Op::set_resolution(res),
+        }
     }
 }
 
@@ -127,19 +140,38 @@ impl CompoundPageOperation {
         }
     }
 
-    fn run_operation<Op>(&self) -> Vec<IoResult<String>>
+    fn make_noop() -> CompoundPageOperation {
+        CompoundPageOperation::new(String::from(""), String::from(""), &[])
+    }
+
+    fn is_noop(&self) -> bool {
+        self.ops.is_empty()
+    }
+
+    fn run_operation<Op>(&self) -> IoResult<String>
         where Op: ElementaryPageOperations {
 
-        let mut results: Vec<_> = Vec::new();
-
-        for op in self.ops.iter() {
-            let res = run_operation::<Op>(op.clone());
-            results.push(res);
+        if self.is_noop() {
+            return Ok(String::from("No Operation"));
         }
 
-        results
-       
+        let mut result = Ok(String::from(""));
+        for op in self.ops.iter() {
+            let res = Op::run_operation(op.clone());
+            match res {
+                Ok(s) => {
+                    continue;
+                }
+                Err(e) => {
+                    result = Err(e);
+                    break;
+                }
+            }
+        }
+
+        result
     }
+
 }
 
 
@@ -203,6 +235,15 @@ struct OperationResults {
     results: Vec<IoResult<String>>,
 }
 
+impl OperationResults {
+    fn new(vec: Vec<IoResult<String>>) -> Self {
+        OperationResults {
+            results: vec,
+        }
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
 enum OperationScheduleError {
     LengthMismatch,
 }
@@ -236,17 +277,28 @@ impl OperationSchedule {
 
     }
 
-    fn run_schedule(schedule: &OperationSchedule) -> OperationResults {
+    fn run_schedule<Op>(schedule: &OperationSchedule) -> OperationResults 
+        where Op: ElementaryPageOperations {
+/*
+        let mut results = Vec::new();
+
+        for (page, op) in (*schedule).schedule {
+            let result = op.run_operation();
+            results.push(result);
+        }
+
+        OperationResults::new(results)
+*/
         unimplemented!();
     }
     
 }
 
-struct OperationScheduleIterator<'a> {
+struct OperationScheduleIter<'a> {
     inner:  hash_map::Iter<'a, Page, CompoundPageOperation>
 }
 
-impl<'a> Iterator for OperationScheduleIterator<'a> {
+impl<'a> Iterator for OperationScheduleIter<'a> {
     type Item = (&'a Page, &'a CompoundPageOperation);
 
     fn next(&mut self) -> Option<Self::Item> {
