@@ -283,7 +283,7 @@ impl OperationSchedule {
         }
     }
 
-    fn run_schedule(schedule: &OperationSchedule) -> OperationResults {
+    fn run_schedule(&self) -> OperationResults {
 /*
         let mut results = Vec::new();
 
