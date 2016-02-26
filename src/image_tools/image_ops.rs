@@ -123,11 +123,20 @@ impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
 struct CompoundPageOperation {
     page_name: FileName,
     page_path: FilePath,
-    ops: Vec<PageOps>,
+    ops: Option<Vec<PageOps>>,
 }
 
 impl CompoundPageOperation {
     fn new(page_name: FileName, page_path: FilePath, ops: &[PageOps]) -> CompoundPageOperation {
+        
+        if ops.is_empty() {
+            return CompoundPageOperation {
+                page_name: page_name,
+                page_path: page_path,
+                ops: None,
+            };
+        }
+
         let mut vec = Vec::new();
         for op in ops.iter() {
             vec.push(op.clone());
@@ -136,42 +145,76 @@ impl CompoundPageOperation {
         CompoundPageOperation {
             page_name: page_name,
             page_path: page_path,
-            ops: vec,
+            ops: Some(vec),
         }
     }
 
     fn make_noop() -> CompoundPageOperation {
-        CompoundPageOperation::new(String::from(""), String::from(""), &[])
+        CompoundPageOperation {
+            page_name: String::from(""),
+            page_path: String::from(""),
+            ops: None,
+        }
     }
 
     fn is_noop(&self) -> bool {
-        self.ops.is_empty()
+        match self.ops {
+            Some(ref vec) => vec.is_empty(),
+            None      => true,
+        }
     }
 
     fn run_operation<Op>(&self) -> IoResult<String>
         where Op: ElementaryPageOperations {
 
-        if self.is_noop() {
-            return Ok(String::from("No Operation"));
-        }
 
-        let mut result = Ok(String::from(""));
-        for op in self.ops.iter() {
-            let res = Op::run_operation(op.clone());
-            match res {
-                Ok(s) => {
-                    continue;
+        match self.ops {
+            
+            None      => {
+                Ok(String::from("No Operation"))
+            }
+            Some(ref vec) => {
+                if self.is_noop() {
+                    // Should not happen.
+                    unreachable!();
+                    //return Ok(String::from("No Operation"));
                 }
-                Err(e) => {
-                    result = Err(e);
-                    break;
+
+                let mut result = Ok(String::from(""));
+                for op in vec.iter() {
+                    let res = Op::run_operation(op.clone());
+                    match res {
+                        Ok(s) => {
+                            continue;
+                        }
+                        Err(e) => {
+                            result = Err(e);
+                            break;
+                        }
+                    }
                 }
+                result
             }
         }
-
-        result
     }
 
+}
+
+
+#[derive(Clone)]
+enum CompoundPageOps {
+    AnOp(CompoundPageOperation),
+    NoOp(CompoundPageOperation),
+}
+
+impl CompoundPageOps {
+    fn new(page_name: FileName, page_path: FilePath, ops: &[PageOps]) -> CompoundPageOps {
+        if ops.is_empty() {
+            return CompoundPageOps::NoOp(CompoundPageOperation::new(page_name, page_path, ops));
+        }
+
+        CompoundPageOps::AnOp(CompoundPageOperation::new(page_name, page_path, ops))
+    }
 }
 
 
