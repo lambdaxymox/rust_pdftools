@@ -160,7 +160,7 @@ impl CompoundPageOperation {
     fn is_noop(&self) -> bool {
         match self.ops {
             Some(ref vec) => vec.is_empty(),
-            None      => true,
+            None          => true,
         }
     }
 
@@ -326,18 +326,17 @@ impl OperationSchedule {
         }
     }
 
-    fn run_schedule(&self) -> OperationResults {
-/*
+    fn run_operation<Op>(&self) -> OperationResults 
+        where Op: ElementaryPageOperations {
+
         let mut results = Vec::new();
 
-        for (page, op) in (*schedule).schedule {
-            let result = op.run_operation();
+        for (page, op) in self {
+            let result = op.run_operation::<Op>();
             results.push(result);
         }
 
         OperationResults::new(results)
-*/
-        unimplemented!();
     }
 
 }
@@ -359,9 +358,30 @@ impl<'a> IntoIterator for &'a OperationSchedule {
     type Item = (&'a Page, &'a CompoundPageOperation);
     type IntoIter = OpSchedIter<'a>;
 
-    fn into_iter(self) -> Self::IntoIter {
-        OpSchedIter {
-            inner: self.schedule.iter(),
+    fn into_iter(self) -> OpSchedIter<'a> {
+        self.iter()
+    }
+}
+
+struct OpSchedIntoIter {
+    inner: hash_map::IntoIter<Page, CompoundPageOperation>,
+}
+
+impl IntoIterator for OperationSchedule {
+    type Item = (Page, CompoundPageOperation);
+    type IntoIter = OpSchedIntoIter;
+
+    fn into_iter(self) -> OpSchedIntoIter {
+        OpSchedIntoIter {
+            inner: self.schedule.into_iter()
         }
+    }
+}
+
+impl Iterator for OpSchedIntoIter {
+    type Item = (Page, CompoundPageOperation);
+
+    fn next(&mut self) -> Option<(Page, CompoundPageOperation)> {
+        self.inner.next()
     }
 }
