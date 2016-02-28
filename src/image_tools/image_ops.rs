@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::io::Result as IoResult;
 use std::result::Result;
 use std::iter::{Iterator, IntoIterator};
@@ -8,27 +9,27 @@ use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
 
 
-type Pixels = usize;
-type FileName = String;
-type FilePath = String;
+pub type Pixels = usize;
+pub type FileName = String;
+pub type FilePath = String;
 
 
 #[derive(Clone, Eq, PartialEq, Hash)]
-enum ResolutionUnits {
+pub enum ResolutionUnits {
     PixelsPerInch,
     PixelsPerCentimeter,
 }
 
 
 #[derive(Clone, Eq, PartialEq, Hash)]
-enum Direction {
+pub enum Direction {
     Horizontal,
     Vertical,
 }
 
 
 #[derive(Clone, Eq, PartialEq, Hash)]
-enum ImageFileFormat {
+pub enum ImageFileFormat {
     TIFF,
     PNG,
     JPEG,
@@ -53,7 +54,7 @@ impl ImageDimensions {
 
 
 #[derive(Clone, Eq, PartialEq, Hash)]
-struct ImageResolution {
+pub struct ImageResolution {
     amount: Pixels,
     units: ResolutionUnits,
 }
@@ -68,7 +69,7 @@ impl ImageResolution {
 }
 
 #[derive(Clone)]
-enum PageOps {
+pub enum PageOps {
     Identify(FilePath),
     Rescale(Pixels, Direction),
     ExpandLeftEdge(Pixels),
@@ -82,7 +83,7 @@ enum PageOps {
     SetResolution(ImageResolution),
 }
 
-trait ElementaryPageOperations {
+pub trait ElementaryPageOperations {
     fn identify(path: FilePath)                -> IoResult<String>;
     fn rescale(amount: Pixels, dir: Direction) -> IoResult<String>;
     fn expand_left_edge(amount: Pixels)        -> IoResult<String>;

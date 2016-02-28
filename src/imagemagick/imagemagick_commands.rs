@@ -14,6 +14,7 @@ enum ImageMagickCommand {
     IdentifyVerbose,
     Mogrify,
     Convert,
+    NoOperation,
 }
 
 impl ToString for ImageMagickCommand {
@@ -23,6 +24,7 @@ impl ToString for ImageMagickCommand {
             ImageMagickCommand::IdentifyVerbose => "identify".to_string(),
             ImageMagickCommand::Mogrify         => "mogrify".to_string(),
             ImageMagickCommand::Convert         => "convert".to_string(),
+            ImageMagickCommand::NoOperation     => "".to_string(),
         }
     }
 }
@@ -75,4 +77,8 @@ pub fn imagemagick_mogrify(file_path: &FilePath, args: &[String]) -> Result<Stri
 
 pub fn imagemagick_convert(file_path: &FilePath, args: &[String]) -> Result<String> {
     imagemagick_command(ImageMagickCommand::Convert, file_path, args)
+}
+
+pub fn imagemagick_no_operation() -> Result<String> {
+    Ok(String::from("No Operation"))
 }
