@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::process::{Command, Output};
 use std::string::{String, ToString};
 use std::ffi::OsString;
@@ -17,6 +18,7 @@ enum ImageMagickCommand {
     NoOperation,
 }
 
+// TODO: Redefine ToString as a trait AsShellCommand.
 impl ToString for ImageMagickCommand {
     fn to_string(&self) -> String {
         match *self {

@@ -6,7 +6,6 @@ use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
 use image_tools::image_ops::{ImageResolution};
 
 
-
 type ImageMagickArg = String;
 type FileName = String;
 type FilePath = String;
@@ -52,12 +51,14 @@ impl ElementaryImageMagickOperation {
     }
 
     fn arg(&mut self, arg: ImageMagickArg) {
-        unimplemented!();
+        self.args.img_args.push(arg);
     }
 
 
-    fn args(&mut self, args: ImageMagickArgs) {
-        unimplemented!();
+    fn args(&mut self, args: &[ImageMagickArg]) {
+        for arg in args {
+            self.args.img_args.push(arg.clone());
+        }
     }
 
     fn run_operation(&self) -> IoResult<String> {
@@ -87,9 +88,25 @@ struct ImageMagickOperation {
 }
 
 impl ImageMagickOperation {
+    fn new() -> ImageMagickOperation {
+        ImageMagickOperation {
+            ops: Vec::new(),
+        }
+    }
 
+    fn add_op(&mut self, op: ElementaryImageMagickOperation) {
+        self.ops.push(op);
+    }
+
+    fn add_ops(&mut self, ops: &[ElementaryImageMagickOperation]) {
+        for op in ops.iter() {
+            self.ops.push(op.clone());
+        }
+    }
 }
 
+// This implementation will be the generator for the sequence of 
+// ImageMagick commands to implement each operation.
 impl ElementaryPageOperations for ImageMagickOperation {
     fn identify(path: FilePath)                -> IoResult<String> {
         unimplemented!();
