@@ -327,6 +327,7 @@ enum OperationScheduleError {
     LengthMismatch,
 }
 
+
 impl OperationPlan {
     fn new() -> OperationPlan {
         OperationPlan {
@@ -388,6 +389,7 @@ impl OperationPlan {
     }
 }
 
+/// Iterator implementation for OperationPlan.
 struct OpPlanIter<'a> {
     inner:  hash_map::Iter<'a, Page, CompoundPageOperation>
 }
@@ -401,6 +403,7 @@ impl<'a> Iterator for OpPlanIter<'a> {
 
 }
 
+/// IntoIterator implementation for OperationPlan.
 impl<'a> IntoIterator for &'a OperationPlan {
     type Item = (&'a Page, &'a CompoundPageOperation);
     type IntoIter = OpPlanIter<'a>;
@@ -429,6 +432,74 @@ impl Iterator for OpPlanIntoIter {
     type Item = (Page, CompoundPageOperation);
 
     fn next(&mut self) -> Option<(Page, CompoundPageOperation)> {
+        self.inner.next()
+    }
+}
+
+
+struct OperationPlanResult {
+    results: HashMap<Page, OperationResults>,
+}
+
+impl OperationPlanResult {
+    fn new() -> OperationPlanResult {
+        OperationPlanResult {
+            results: HashMap::new(),
+        }
+    }
+
+    fn insert(&mut self, page: Page, res: OperationResults) {
+        self.results.insert(page, res);
+    }
+
+    fn iter(&self) -> OpPlanResultIter {
+        OpPlanResultIter {
+            inner: self.results.iter()
+        }
+    }
+}
+
+struct OpPlanResultIter<'a> {
+    inner: hash_map::Iter<'a, Page, OperationResults>,
+}
+
+impl<'a> Iterator for OpPlanResultIter<'a> {
+    type Item = (&'a Page, &'a OperationResults);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+/// IntoIterator implementation for OpPlanResultIter.
+impl<'a> IntoIterator for &'a OperationPlanResult {
+    type Item = (&'a Page, &'a OperationResults);
+    type IntoIter = OpPlanResultIter<'a>;
+
+    fn into_iter(self) -> OpPlanResultIter<'a> {
+        self.iter()
+    }
+}
+
+struct OpPlanResultIntoIter {
+    inner: hash_map::IntoIter<Page, OperationResults>,
+}
+
+impl IntoIterator for OperationPlanResult {
+    type Item = (Page, OperationResults);
+    type IntoIter = OpPlanResultIntoIter;
+
+    fn into_iter(self) -> OpPlanResultIntoIter {
+        OpPlanResultIntoIter {
+            inner: self.results.into_iter()
+        }
+    }
+}
+
+impl Iterator for OpPlanResultIntoIter {
+    type Item = (Page, OperationResults);
+
+    fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
     }
 }
