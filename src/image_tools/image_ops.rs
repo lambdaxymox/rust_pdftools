@@ -101,11 +101,6 @@ trait RunOperation {
     fn run_operation(op: Self) -> OperationResults;
 }
 
-/*
-trait RunMultipleOperations {
-    fn run_operations(op: Self) -> OperationResults;
-}
-*/
 trait GenerateOperation<OpType, Op> where Op: ElementaryPageOperations {
     fn generate_operation(op: OpType) -> Op;
 }
@@ -127,26 +122,7 @@ impl<Op> GenerateOperation<PageOps, Op> for Op where Op: ElementaryPageOperation
         }
     }
 }
-/*
-impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
-    fn run_operation(page_op: PageOps) -> IoResult<String> {
-        match page_op {
-            PageOps::Identify(file, path)     => Ok(String::from("String")),//Op::identify(file, path),
-            PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
-            PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
-            PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
-            PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
-            PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
-            PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
-            PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
-            PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
-            PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
-            PageOps::SetResolution(res)       => Op::set_resolution(res),
-        }
-    }
 
-}
-*/
 
 #[derive(Clone)]
 struct CompoundPageOperation {
@@ -233,23 +209,6 @@ impl CompoundPageOperation {
 
 }
 
-/*
-#[derive(Clone)]
-enum CompoundPageOps {
-    AnOp(CompoundPageOperation),
-    NoOp(CompoundPageOperation),
-}
-
-impl CompoundPageOps {
-    fn new(page_name: FileName, page_path: FilePath, ops: &[PageOps]) -> CompoundPageOps {
-        if ops.is_empty() {
-            return CompoundPageOps::NoOp(CompoundPageOperation::new(page_name, page_path, ops));
-        }
-
-        CompoundPageOps::AnOp(CompoundPageOperation::new(page_name, page_path, ops))
-    }
-}
-*/
 
 #[derive(Clone, Eq)]
 struct Page {
