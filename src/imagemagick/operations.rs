@@ -193,18 +193,3 @@ impl RunOperation for ImageMagickOperation {
         results
     }
 }
-
-
-/*
-fn make_operation<T>() -> T
-    where T: ImageMagickOperation {
-
-    unimplemented!();
-}
-
-fn run_operation<T>(op: &T) -> Result<String>
-    where T: ImageMagickOperation {
-
-    op.call()
-}
-*/
