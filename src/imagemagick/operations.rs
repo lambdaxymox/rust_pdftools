@@ -19,6 +19,22 @@ enum ImageMagickOpType {
     NoOperation,
 }
 
+trait AsShellCommand {
+    fn as_shell_command(&self) -> String;
+}
+
+impl AsShellCommand for ImageMagickOpType {
+    fn as_shell_command(&self) -> String {
+        match *self {
+            ImageMagickOpType::Identify        => String::from("identify"),
+            ImageMagickOpType::IdentifyVerbose => String::from("identify"),
+            ImageMagickOpType::Mogrify         => String::from("mogrify"),
+            ImageMagickOpType::Convert         => String::from("convert"),
+            ImageMagickOpType::NoOperation     => String::from(""),
+        }
+    }
+}
+
 #[derive(Clone)]
 struct ImageMagickArgs {
     file_path: FilePath,
@@ -108,7 +124,10 @@ impl ImageMagickOperation {
 // This implementation will be the generator for the sequence of 
 // ImageMagick commands to implement each operation.
 impl ElementaryPageOperations for ImageMagickOperation {
+
     fn identify(path: FilePath)                -> IoResult<String> {
+        // Identify presesntly generates an identify command without the -verbose flag.
+        // This may change in the future where we use verbose as the default.
         unimplemented!();
     }
 
