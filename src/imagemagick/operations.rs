@@ -187,7 +187,7 @@ impl RunOperation for ImageMagickOperation {
         for action in op.ops {
             let mut result = Vec::new();
             result.push(action.run_operation());
-            results.append(&mut OperationResults::from_vec(&mut result));
+            results.append(&mut OperationResults::from(&mut result));
         }
 
         results

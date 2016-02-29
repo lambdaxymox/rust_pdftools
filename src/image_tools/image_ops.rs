@@ -7,6 +7,7 @@ use std::collections::hash_map;
 use std::vec::Vec;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
+use std::convert::From;
 
 
 pub type Pixels = usize;
@@ -176,7 +177,7 @@ impl CompoundPageOperation {
             None      => {
                 let mut res = Vec::new();
                 res.push(Ok(String::from("No Operation")));
-                OperationResults::from_vec(&mut res)
+                OperationResults::from(&mut res)
             }
             Some(ref vec) => {
                 if self.is_noop() {
@@ -203,7 +204,7 @@ impl CompoundPageOperation {
                 }
                 let mut results = Vec::new();
                 results.push(result);
-                OperationResults::from_vec(&mut results)
+                OperationResults::from(&mut results)
             }
         }
     }
@@ -274,16 +275,11 @@ impl OperationResults {
             results: Vec::new(),
         }
     }
-
+/*
     pub fn from_vec(vec: &mut Vec<OperationResult>) -> OperationResults {
-        let mut results = Vec::new();
-        results.append(vec);
 
-        OperationResults {
-            results: results,
-        }
     }
-
+*/
     pub fn push(&mut self, result: OperationResult) {
         self.results.push(result);
     }
@@ -292,6 +288,25 @@ impl OperationResults {
         self.results.append(&mut other.results);
     }
 
+}
+
+impl From<Vec<OperationResult>> for OperationResults {
+    fn from(vec: Vec<OperationResult>) -> OperationResults {
+        unimplemented!();
+    }
+}
+
+/// Destructive conversion from a mutable vector of OperationResult
+/// to simplify the process of returning results from running operations.
+impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
+    fn from(vec: &mut Vec<OperationResult>) -> OperationResults {
+        let mut results = Vec::new();
+        results.append(vec);
+
+        OperationResults {
+            results: results,
+        }
+    }
 }
 
 
