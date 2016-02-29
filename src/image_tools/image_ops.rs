@@ -97,7 +97,7 @@ pub trait ElementaryPageOperations {
     fn set_resolution(res: ImageResolution)          -> Self;
 }
 
-trait RunOperation {
+pub trait RunOperation {
     fn run_operation(op: Self) -> OperationResults;
 }
 
@@ -261,21 +261,21 @@ impl Hash for Page {
 }
 
 
-type OperationResult = IoResult<String>;
+pub type OperationResult = IoResult<String>;
 
 
-struct OperationResults {
+pub struct OperationResults {
     results: Vec<OperationResult>,
 }
 
 impl OperationResults {
-    fn new() -> OperationResults {
+    pub fn new() -> OperationResults {
         OperationResults {
             results: Vec::new(),
         }
     }
 
-    fn from_vec(vec: &mut Vec<OperationResult>) -> OperationResults {
+    pub fn from_vec(vec: &mut Vec<OperationResult>) -> OperationResults {
         let mut results = Vec::new();
         results.append(vec);
 
@@ -284,11 +284,11 @@ impl OperationResults {
         }
     }
 
-    fn push(&mut self, result: OperationResult) {
+    pub fn push(&mut self, result: OperationResult) {
         self.results.push(result);
     }
 
-    fn append(&mut self, other: &mut OperationResults) {
+    pub fn append(&mut self, other: &mut OperationResults) {
         self.results.append(&mut other.results);
     }
 

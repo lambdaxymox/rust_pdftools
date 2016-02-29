@@ -3,7 +3,9 @@ use std::io::Result as IoResult;
 use std::io::Error  as IoError;
 use super::imagemagick_commands;
 use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
-use image_tools::image_ops::{ImageResolution};
+use image_tools::image_ops::ImageResolution;
+use image_tools::image_ops::RunOperation;
+use image_tools::image_ops::OperationResults;
 
 
 type ImageMagickArg = String;
@@ -99,7 +101,7 @@ impl ElementaryImageMagickOperation {
 }
 
 #[derive(Clone)]
-struct ImageMagickOperation {
+pub struct ImageMagickOperation {
     ops: Vec<ElementaryImageMagickOperation>,
 }
 
@@ -176,6 +178,20 @@ impl ElementaryPageOperations for ImageMagickOperation {
     fn set_resolution(res: ImageResolution)    -> ImageMagickOperation {
         unimplemented!();
     } 
+}
+
+impl RunOperation for ImageMagickOperation {
+    fn run_operation(op: ImageMagickOperation) -> OperationResults {
+        let mut results = OperationResults::new();
+
+        for action in op.ops {
+            let mut result = Vec::new();
+            result.push(action.run_operation());
+            results.append(&mut OperationResults::from_vec(&mut result));
+        }
+
+        results
+    }
 }
 
 
