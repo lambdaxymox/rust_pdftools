@@ -101,12 +101,12 @@ trait RunOperation {
     fn run_operation(op: Self) -> OperationResults;
 }
 
-trait GenerateOperation<OpType, Op> where Op: ElementaryPageOperations {
-    fn generate_operation(op: OpType) -> Op;
+trait CompileOperation<OpType, Op> where Op: ElementaryPageOperations {
+    fn compile_operation(op: OpType) -> Op;
 }
 
-impl<Op> GenerateOperation<PageOps, Op> for Op where Op: ElementaryPageOperations {
-    fn generate_operation(op: PageOps) -> Op {
+impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations {
+    fn compile_operation(op: PageOps) -> Op {
         match op {
             PageOps::Identify(file, path)     => Op::identify(file, path),
             PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
@@ -170,7 +170,7 @@ impl CompoundPageOperation {
     }
 
     fn run_operation<Op>(&self) -> OperationResults
-        where Op: ElementaryPageOperations + RunOperation + GenerateOperation<PageOps, Op> {
+        where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
         match self.ops {   
             None      => {
@@ -187,13 +187,14 @@ impl CompoundPageOperation {
 
                 let mut result = Ok(String::from(""));
                 for op in vec.iter() {
-                    let op_results = Op::run_operation(Op::generate_operation(op.clone()));
+                    let op_results = Op::run_operation(Op::compile_operation(op.clone()));
                     for res in op_results.results {    
                         match res {
                             Ok(s) => {
                                 continue;
                             }
                             Err(e) => {
+                                // Fail fast if there is an error.
                                 result = Err(e);
                                 break;
                             }
@@ -340,7 +341,7 @@ impl OperationSchedule {
     }
 
     fn run_operation<Op>(&self) -> OperationResults 
-        where Op: ElementaryPageOperations + RunOperation + GenerateOperation<PageOps, Op> {
+        where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
         let mut results = OperationResults::new();
 
@@ -352,14 +353,11 @@ impl OperationSchedule {
                 } 
                 Some(ref operations) => {
                     for elem_op in operations {
-                        let compiled_op = Op::generate_operation(elem_op.clone());
+                        let compiled_op = Op::compile_operation(elem_op.clone());
                         let mut result = Op::run_operation(compiled_op);
                         results.append(&mut result);
                     }
                 }
-            //let compiled_op = Op::generate_operation(op);
-            //let result = compiled_op.run_operation::<Op>();
-            //results.append(result);
             }
 
         }
