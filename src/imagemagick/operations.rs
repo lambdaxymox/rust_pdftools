@@ -137,43 +137,43 @@ impl ElementaryPageOperations for ImageMagickOperation {
 
     }
 
-    fn rescale(amount: Pixels, dir: Direction) -> IoResult<String> {
+    fn rescale(amount: Pixels, dir: Direction) -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn expand_left_edge(amount: Pixels)        -> IoResult<String> {
+    fn expand_left_edge(amount: Pixels)        -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn expand_right_edge(amount: Pixels)       -> IoResult<String> {
+    fn expand_right_edge(amount: Pixels)       -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn expand_top_edge(amount: Pixels)         -> IoResult<String> {
+    fn expand_top_edge(amount: Pixels)         -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn expand_bottom_edge(amount: Pixels)      -> IoResult<String> {
+    fn expand_bottom_edge(amount: Pixels)      -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn trim_left_edge(amount: Pixels)          -> IoResult<String> {
+    fn trim_left_edge(amount: Pixels)          -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn trim_right_edge(amount: Pixels)         -> IoResult<String> {
+    fn trim_right_edge(amount: Pixels)         -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn trim_top_edge(amount: Pixels)           -> IoResult<String> {
+    fn trim_top_edge(amount: Pixels)           -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn trim_bottom_edge(amount: Pixels)        -> IoResult<String> {
+    fn trim_bottom_edge(amount: Pixels)        -> ImageMagickOperation {
         unimplemented!();
     }
 
-    fn set_resolution(res: ImageResolution)    -> IoResult<String> {
+    fn set_resolution(res: ImageResolution)    -> ImageMagickOperation {
         unimplemented!();
     } 
 }

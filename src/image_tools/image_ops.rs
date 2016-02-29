@@ -85,22 +85,49 @@ pub enum PageOps {
 
 pub trait ElementaryPageOperations {
     fn identify(file_name: FileName, path: FilePath) -> Self;
-    fn rescale(amount: Pixels, dir: Direction)       -> IoResult<String>;
-    fn expand_left_edge(amount: Pixels)              -> IoResult<String>;
-    fn expand_right_edge(amount: Pixels)             -> IoResult<String>;
-    fn expand_top_edge(amount: Pixels)               -> IoResult<String>;
-    fn expand_bottom_edge(amount: Pixels)            -> IoResult<String>;
-    fn trim_left_edge(amount: Pixels)                -> IoResult<String>;
-    fn trim_right_edge(amount: Pixels)               -> IoResult<String>;
-    fn trim_top_edge(amount: Pixels)                 -> IoResult<String>;
-    fn trim_bottom_edge(amount: Pixels)              -> IoResult<String>;
-    fn set_resolution(res: ImageResolution)          -> IoResult<String>;
+    fn rescale(amount: Pixels, dir: Direction)       -> Self;
+    fn expand_left_edge(amount: Pixels)              -> Self;
+    fn expand_right_edge(amount: Pixels)             -> Self;
+    fn expand_top_edge(amount: Pixels)               -> Self;
+    fn expand_bottom_edge(amount: Pixels)            -> Self;
+    fn trim_left_edge(amount: Pixels)                -> Self;
+    fn trim_right_edge(amount: Pixels)               -> Self;
+    fn trim_top_edge(amount: Pixels)                 -> Self;
+    fn trim_bottom_edge(amount: Pixels)              -> Self;
+    fn set_resolution(res: ImageResolution)          -> Self;
 }
 
-trait RunOperation<OpTrait, OtherOp> {
-    fn run_operation(op: OtherOp) -> IoResult<String>;
+trait RunOperation {
+    fn run_operation(op: Self) -> OperationResults;
 }
 
+/*
+trait RunMultipleOperations {
+    fn run_operations(op: Self) -> OperationResults;
+}
+*/
+trait GenerateOperation<OpType, Op> where Op: ElementaryPageOperations {
+    fn generate_operation(op: OpType) -> Op;
+}
+
+impl<Op> GenerateOperation<PageOps, Op> for Op where Op: ElementaryPageOperations {
+    fn generate_operation(op: PageOps) -> Op {
+        match op {
+            PageOps::Identify(file, path)     => Op::identify(file, path),
+            PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
+            PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
+            PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
+            PageOps::ExpandTopEdge(amount)    => Op::expand_top_edge(amount),
+            PageOps::ExpandBottomEdge(amount) => Op::expand_bottom_edge(amount),
+            PageOps::TrimLeftEdge(amount)     => Op::trim_left_edge(amount),
+            PageOps::TrimRightEdge(amount)    => Op::trim_right_edge(amount),
+            PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
+            PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
+            PageOps::SetResolution(res)       => Op::set_resolution(res),
+        }
+    }
+}
+/*
 impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
     fn run_operation(page_op: PageOps) -> IoResult<String> {
         match page_op {
@@ -119,7 +146,7 @@ impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
     }
 
 }
-
+*/
 
 #[derive(Clone)]
 struct CompoundPageOperation {
@@ -166,14 +193,14 @@ impl CompoundPageOperation {
         }
     }
 
-    fn run_operation<Op>(&self) -> IoResult<String>
-        where Op: ElementaryPageOperations {
+    fn run_operation<Op>(&self) -> OperationResults
+        where Op: ElementaryPageOperations + RunOperation + GenerateOperation<PageOps, Op> {
 
-
-        match self.ops {
-            
+        match self.ops {   
             None      => {
-                Ok(String::from("No Operation"))
+                let mut res = Vec::new();
+                res.push(Ok(String::from("No Operation")));
+                OperationResults::from_vec(&mut res)
             }
             Some(ref vec) => {
                 if self.is_noop() {
@@ -184,25 +211,29 @@ impl CompoundPageOperation {
 
                 let mut result = Ok(String::from(""));
                 for op in vec.iter() {
-                    let res = Op::run_operation(op.clone());
-                    match res {
-                        Ok(s) => {
-                            continue;
-                        }
-                        Err(e) => {
-                            result = Err(e);
-                            break;
+                    let op_results = Op::run_operation(Op::generate_operation(op.clone()));
+                    for res in op_results.results {    
+                        match res {
+                            Ok(s) => {
+                                continue;
+                            }
+                            Err(e) => {
+                                result = Err(e);
+                                break;
+                            }
                         }
                     }
                 }
-                result
+                let mut results = Vec::new();
+                results.push(result);
+                OperationResults::from_vec(&mut results)
             }
         }
     }
 
 }
 
-
+/*
 #[derive(Clone)]
 enum CompoundPageOps {
     AnOp(CompoundPageOperation),
@@ -218,7 +249,7 @@ impl CompoundPageOps {
         CompoundPageOps::AnOp(CompoundPageOperation::new(page_name, page_path, ops))
     }
 }
-
+*/
 
 #[derive(Clone, Eq)]
 struct Page {
@@ -284,12 +315,21 @@ impl OperationResults {
         }
     }
 
-    fn append(&mut self, result: OperationResult) {
+    fn from_vec(vec: &mut Vec<OperationResult>) -> OperationResults {
+        let mut results = Vec::new();
+        results.append(vec);
+
+        OperationResults {
+            results: results,
+        }
+    }
+
+    fn push(&mut self, result: OperationResult) {
         self.results.push(result);
     }
 
-    fn append_vec(&mut self, other: &mut Vec<OperationResult>) {
-        self.results.append(other);
+    fn append(&mut self, other: &mut OperationResults) {
+        self.results.append(&mut other.results);
     }
 
 }
@@ -341,18 +381,32 @@ impl OperationSchedule {
     }
 
     fn run_operation<Op>(&self) -> OperationResults 
-        where Op: ElementaryPageOperations {
+        where Op: ElementaryPageOperations + RunOperation + GenerateOperation<PageOps, Op> {
 
         let mut results = OperationResults::new();
 
         for (page, op) in self {
-            let result = op.run_operation::<Op>();
-            results.append(result);
+            
+            match op.ops {
+                None => {
+                    continue;
+                } 
+                Some(ref operations) => {
+                    for elem_op in operations {
+                        let compiled_op = Op::generate_operation(elem_op.clone());
+                        let mut result = Op::run_operation(compiled_op);
+                        results.append(&mut result);
+                    }
+                }
+            //let compiled_op = Op::generate_operation(op);
+            //let result = compiled_op.run_operation::<Op>();
+            //results.append(result);
+            }
+
         }
 
         results
     }
-
 }
 
 struct OpSchedIter<'a> {
