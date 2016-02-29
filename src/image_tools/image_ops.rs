@@ -275,11 +275,7 @@ impl OperationResults {
             results: Vec::new(),
         }
     }
-/*
-    pub fn from_vec(vec: &mut Vec<OperationResult>) -> OperationResults {
 
-    }
-*/
     pub fn push(&mut self, result: OperationResult) {
         self.results.push(result);
     }
@@ -310,7 +306,7 @@ impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
 }
 
 
-struct OperationSchedule {
+struct OperationPlan {
     schedule: HashMap<Page, CompoundPageOperation>, 
 }
 
@@ -320,9 +316,9 @@ enum OperationScheduleError {
     LengthMismatch,
 }
 
-impl OperationSchedule {
-    fn new() -> OperationSchedule {
-        OperationSchedule {
+impl OperationPlan {
+    fn new() -> OperationPlan {
+        OperationPlan {
             schedule: HashMap::new(),
         }
     }
@@ -334,7 +330,7 @@ impl OperationSchedule {
     fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, OperationScheduleError> {
         if pages.len() == ops.len() {
 
-            let mut schedule = OperationSchedule::new();
+            let mut schedule = OperationPlan::new();
 
             for page_number in 0..pages.len() {
                 schedule.add_operation(pages[page_number].clone(), ops[page_number].clone());
@@ -349,8 +345,8 @@ impl OperationSchedule {
 
     }
 
-    fn iter(&self) -> OpSchedIter {
-        OpSchedIter {
+    fn iter(&self) -> OpPlanIter {
+        OpPlanIter {
             inner: self.schedule.iter()
         }
     }
@@ -381,11 +377,11 @@ impl OperationSchedule {
     }
 }
 
-struct OpSchedIter<'a> {
+struct OpPlanIter<'a> {
     inner:  hash_map::Iter<'a, Page, CompoundPageOperation>
 }
 
-impl<'a> Iterator for OpSchedIter<'a> {
+impl<'a> Iterator for OpPlanIter<'a> {
     type Item = (&'a Page, &'a CompoundPageOperation);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -394,31 +390,31 @@ impl<'a> Iterator for OpSchedIter<'a> {
 
 }
 
-impl<'a> IntoIterator for &'a OperationSchedule {
+impl<'a> IntoIterator for &'a OperationPlan {
     type Item = (&'a Page, &'a CompoundPageOperation);
-    type IntoIter = OpSchedIter<'a>;
+    type IntoIter = OpPlanIter<'a>;
 
-    fn into_iter(self) -> OpSchedIter<'a> {
+    fn into_iter(self) -> OpPlanIter<'a> {
         self.iter()
     }
 }
 
-struct OpSchedIntoIter {
+struct OpPlanIntoIter {
     inner: hash_map::IntoIter<Page, CompoundPageOperation>,
 }
 
-impl IntoIterator for OperationSchedule {
+impl IntoIterator for OperationPlan {
     type Item = (Page, CompoundPageOperation);
-    type IntoIter = OpSchedIntoIter;
+    type IntoIter = OpPlanIntoIter;
 
-    fn into_iter(self) -> OpSchedIntoIter {
-        OpSchedIntoIter {
+    fn into_iter(self) -> OpPlanIntoIter {
+        OpPlanIntoIter {
             inner: self.schedule.into_iter()
         }
     }
 }
 
-impl Iterator for OpSchedIntoIter {
+impl Iterator for OpPlanIntoIter {
     type Item = (Page, CompoundPageOperation);
 
     fn next(&mut self) -> Option<(Page, CompoundPageOperation)> {
