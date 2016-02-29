@@ -175,9 +175,7 @@ impl CompoundPageOperation {
 
         match self.ops {   
             None      => {
-                let mut res = Vec::new();
-                res.push(Ok(String::from("No Operation")));
-                OperationResults::from(&mut res)
+                OperationResults::from(Ok(String::from("No Operation")))
             }
             Some(ref vec) => {
                 if self.is_noop() {
@@ -202,9 +200,8 @@ impl CompoundPageOperation {
                         }
                     }
                 }
-                let mut results = Vec::new();
-                results.push(result);
-                OperationResults::from(&mut results)
+
+                OperationResults::from(result)
             }
         }
     }
@@ -301,6 +298,20 @@ impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
 
         OperationResults {
             results: results,
+        }
+    }
+}
+
+/// Generates an OperationResults struct from a single OperationResult.
+/// For compatibility between operations that may return multiple results
+/// and ones that may return only one result.
+impl From<OperationResult> for OperationResults {
+    fn from(op_res: OperationResult) -> OperationResults {
+        let mut results = Vec::new();
+        results.push(op_res);
+
+        OperationResults {
+            results: results
         }
     }
 }
