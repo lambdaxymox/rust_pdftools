@@ -258,8 +258,7 @@ impl PartialEq for Page {
 }
 
 impl Hash for Page {
-    fn hash<H>(&self, state: &mut H)
-        where H: Hasher {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
 
         self.file_name.hash(state);
         self.file_extension.hash(state);
@@ -270,22 +269,35 @@ impl Hash for Page {
 }
 
 
+type OperationResult = IoResult<String>;
+
+
+struct OperationResults {
+    results: Vec<OperationResult>,
+}
+
+impl OperationResults {
+    fn new() -> OperationResults {
+        OperationResults {
+            results: Vec::new(),
+        }
+    }
+
+    fn append(&mut self, result: OperationResult) {
+        self.results.push(result);
+    }
+
+    fn append_vec(&mut self, other: &mut Vec<OperationResult>) {
+        self.results.append(other);
+    }
+
+}
+
+
 struct OperationSchedule {
     schedule: HashMap<Page, CompoundPageOperation>, 
 }
 
-
-struct OperationResults {
-    results: Vec<IoResult<String>>,
-}
-
-impl OperationResults {
-    fn new(vec: Vec<IoResult<String>>) -> Self {
-        OperationResults {
-            results: vec,
-        }
-    }
-}
 
 #[derive(Clone, Eq, PartialEq)]
 enum OperationScheduleError {
@@ -293,7 +305,7 @@ enum OperationScheduleError {
 }
 
 impl OperationSchedule {
-    fn new() -> Self {
+    fn new() -> OperationSchedule {
         OperationSchedule {
             schedule: HashMap::new(),
         }
@@ -330,14 +342,14 @@ impl OperationSchedule {
     fn run_operation<Op>(&self) -> OperationResults 
         where Op: ElementaryPageOperations {
 
-        let mut results = Vec::new();
+        let mut results = OperationResults::new();
 
         for (page, op) in self {
             let result = op.run_operation::<Op>();
-            results.push(result);
+            results.append(result);
         }
 
-        OperationResults::new(results)
+        results
     }
 
 }
