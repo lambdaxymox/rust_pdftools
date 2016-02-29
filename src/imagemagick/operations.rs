@@ -110,7 +110,7 @@ impl ImageMagickOperation {
         }
     }
 
-    fn add_op(&mut self, op: ElementaryImageMagickOperation) {
+    fn add_op(&mut self, op: ElementaryImageMagickOperation)  {
         self.ops.push(op);
     }
 
@@ -125,10 +125,16 @@ impl ImageMagickOperation {
 // ImageMagick commands to implement each operation.
 impl ElementaryPageOperations for ImageMagickOperation {
 
-    fn identify(path: FilePath)                -> IoResult<String> {
+    fn identify(file_name: FileName, file_path: FilePath) -> ImageMagickOperation {
         // Identify presesntly generates an identify command without the -verbose flag.
         // This may change in the future where we use verbose as the default.
-        unimplemented!();
+        let args = ImageMagickArgs::new(file_name, file_path, &Vec::new());
+        let elem_op = ElementaryImageMagickOperation::new(ImageMagickOpType::Identify, args);
+        let mut op = ImageMagickOperation::new();
+        op.add_op(elem_op);
+
+        op
+
     }
 
     fn rescale(amount: Pixels, dir: Direction) -> IoResult<String> {

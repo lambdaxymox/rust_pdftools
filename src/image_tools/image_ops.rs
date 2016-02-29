@@ -70,7 +70,7 @@ impl ImageResolution {
 
 #[derive(Clone)]
 pub enum PageOps {
-    Identify(FilePath),
+    Identify(FileName, FilePath),
     Rescale(Pixels, Direction),
     ExpandLeftEdge(Pixels),
     ExpandRightEdge(Pixels),
@@ -84,17 +84,17 @@ pub enum PageOps {
 }
 
 pub trait ElementaryPageOperations {
-    fn identify(path: FilePath)                -> IoResult<String>;
-    fn rescale(amount: Pixels, dir: Direction) -> IoResult<String>;
-    fn expand_left_edge(amount: Pixels)        -> IoResult<String>;
-    fn expand_right_edge(amount: Pixels)       -> IoResult<String>;
-    fn expand_top_edge(amount: Pixels)         -> IoResult<String>;
-    fn expand_bottom_edge(amount: Pixels)      -> IoResult<String>;
-    fn trim_left_edge(amount: Pixels)          -> IoResult<String>;
-    fn trim_right_edge(amount: Pixels)         -> IoResult<String>;
-    fn trim_top_edge(amount: Pixels)           -> IoResult<String>;
-    fn trim_bottom_edge(amount: Pixels)        -> IoResult<String>;
-    fn set_resolution(res: ImageResolution)    -> IoResult<String>;
+    fn identify(file_name: FileName, path: FilePath) -> Self;
+    fn rescale(amount: Pixels, dir: Direction)       -> IoResult<String>;
+    fn expand_left_edge(amount: Pixels)              -> IoResult<String>;
+    fn expand_right_edge(amount: Pixels)             -> IoResult<String>;
+    fn expand_top_edge(amount: Pixels)               -> IoResult<String>;
+    fn expand_bottom_edge(amount: Pixels)            -> IoResult<String>;
+    fn trim_left_edge(amount: Pixels)                -> IoResult<String>;
+    fn trim_right_edge(amount: Pixels)               -> IoResult<String>;
+    fn trim_top_edge(amount: Pixels)                 -> IoResult<String>;
+    fn trim_bottom_edge(amount: Pixels)              -> IoResult<String>;
+    fn set_resolution(res: ImageResolution)          -> IoResult<String>;
 }
 
 trait RunOperation<OpTrait, OtherOp> {
@@ -104,7 +104,7 @@ trait RunOperation<OpTrait, OtherOp> {
 impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
     fn run_operation(page_op: PageOps) -> IoResult<String> {
         match page_op {
-            PageOps::Identify(path)           => Op::identify(path),
+            PageOps::Identify(file, path)     => Ok(String::from("String")),//Op::identify(file, path),
             PageOps::Rescale(amount, dir)     => Op::rescale(amount, dir),
             PageOps::ExpandLeftEdge(amount)   => Op::expand_left_edge(amount),
             PageOps::ExpandRightEdge(amount)  => Op::expand_right_edge(amount),
@@ -117,6 +117,7 @@ impl<Op> RunOperation<Op, PageOps> for Op where Op: ElementaryPageOperations {
             PageOps::SetResolution(res)       => Op::set_resolution(res),
         }
     }
+
 }
 
 
