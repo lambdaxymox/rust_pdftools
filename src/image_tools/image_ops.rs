@@ -170,43 +170,7 @@ impl<Op> CompoundPageOperation<Op> where Op: Clone {
             inner: self.ops.iter()
         }
     }
-/*  TODO: Move into a RunOperation instance.
-    fn run_operation<Op>(&self) -> OperationResults
-        where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
-        match self.ops {   
-            None      => {
-                OperationResults::from(Ok(String::from("No Operation")))
-            }
-            Some(ref vec) => {
-                if self.is_noop() {
-                    // Should not happen.
-                    unreachable!();
-                    //return Ok(String::from("No Operation"));
-                }
-
-                let mut result = Ok(String::from(""));
-                for op in vec.iter() {
-                    let op_results = Op::run_operation(Op::compile_operation(op.clone()));
-                    for res in op_results.results {    
-                        match res {
-                            Ok(s) => {
-                                continue;
-                            }
-                            Err(e) => {
-                                // Fail fast if there is an error.
-                                result = Err(e);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                OperationResults::from(result)
-            }
-        }
-    }
-*/
 }
 
 impl CompoundPageOperation<PageOps> {
@@ -613,9 +577,22 @@ impl Iterator for OpPlanResultIntoIter {
 }
 
 
-trait ExecutePlan<P> {
+trait ExecutePlan<PlanType, OpType> where OpType: RunOperation {
     type ExecutionResult;
+    type ExecutionStatus;
 
     fn execute_plan(&self) -> Self::ExecutionResult;
-    fn abort_plan(&self) -> Self::ExecutionResult;
+    fn abort_plan(&self)   -> Self::ExecutionResult;
+    fn plan_status(&self)  -> Self::ExecutionStatus;
 }
+
+enum OperationPlanStatus {
+    Completed,
+    Executing,
+    ErrorsOcurred,
+    Aborted,
+    UnExecuted,
+}
+
+
+
