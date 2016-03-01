@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use std::io::Result as IoResult;
 use std::io::Error  as IoError;
+use std::convert::AsRef;
 use super::imagemagick_commands;
 use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
 use image_tools::image_ops::ImageResolution;
@@ -55,7 +56,7 @@ impl ImageMagickArgs {
 }
 
 #[derive(Clone)]
-struct ElementaryImageMagickOperation {
+pub struct ElementaryImageMagickOperation {
     op:   ImageMagickOpType,
     args: ImageMagickArgs,
 }
@@ -180,6 +181,13 @@ impl ElementaryPageOperations for ImageMagickOperation {
     }
     fn no_operation()                          -> ImageMagickOperation {
         unimplemented!();
+    }
+}
+
+
+impl AsRef<[ElementaryImageMagickOperation]> for ImageMagickOperation {
+    fn as_ref(&self) -> &[ElementaryImageMagickOperation] {
+        self.ops.as_ref()
     }
 }
 
