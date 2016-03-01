@@ -32,7 +32,7 @@ impl AsShellCommand for ImageMagickOpType {
             ImageMagickOpType::IdentifyVerbose => String::from("identify"),
             ImageMagickOpType::Mogrify         => String::from("mogrify"),
             ImageMagickOpType::Convert         => String::from("convert"),
-            ImageMagickOpType::NoOperation     => String::from(""),
+            ImageMagickOpType::NoOperation     => String::from("echo"),
         }
     }
 }
@@ -177,7 +177,10 @@ impl ElementaryPageOperations for ImageMagickOperation {
 
     fn set_resolution(res: ImageResolution)    -> ImageMagickOperation {
         unimplemented!();
-    } 
+    }
+    fn no_operation()                          -> ImageMagickOperation {
+        unimplemented!();
+    }
 }
 
 impl RunOperation for ImageMagickOperation {

@@ -71,6 +71,7 @@ impl ImageResolution {
 
 #[derive(Clone)]
 pub enum PageOps {
+    NoOperation,
     Identify(FileName, FilePath),
     Rescale(Pixels, Direction),
     ExpandLeftEdge(Pixels),
@@ -96,6 +97,7 @@ pub trait ElementaryPageOperations {
     fn trim_top_edge(amount: Pixels)                 -> Self;
     fn trim_bottom_edge(amount: Pixels)              -> Self;
     fn set_resolution(res: ImageResolution)          -> Self;
+    fn no_operation()                                -> Self;
 }
 
 pub trait RunOperation {
@@ -120,6 +122,7 @@ impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations
             PageOps::TrimTopEdge(amount)      => Op::trim_top_edge(amount),
             PageOps::TrimBottomEdge(amount)   => Op::trim_bottom_edge(amount),
             PageOps::SetResolution(res)       => Op::set_resolution(res),
+            PageOps::NoOperation              => Op::no_operation(),
         }
     }
 }
@@ -204,6 +207,15 @@ impl CompoundPageOperation {
                 OperationResults::from(result)
             }
         }
+    }
+
+}
+
+impl<Op> CompileOperation<CompoundPageOperation, Op> for Op 
+    where Op: ElementaryPageOperations + CompileOperation<CompoundPageOperation, Op> {
+
+    fn compile_operation(comp_op: CompoundPageOperation) -> Op {
+        unimplemented!();
     }
 
 }
