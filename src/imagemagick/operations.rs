@@ -13,7 +13,7 @@ type ImageMagickArg = String;
 type FileName = String;
 type FilePath = String;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum ImageMagickOpType {
     Identify,
     IdentifyVerbose,
@@ -38,7 +38,7 @@ impl AsShellCommand for ImageMagickOpType {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct ImageMagickArgs {
     file_path: FilePath,
     file_name: FileName,
@@ -55,7 +55,7 @@ impl ImageMagickArgs {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ElementaryImageMagickOperation {
     op:   ImageMagickOpType,
     args: ImageMagickArgs,
@@ -101,7 +101,7 @@ impl ElementaryImageMagickOperation {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ImageMagickOperation {
     ops: Vec<ElementaryImageMagickOperation>,
 }
