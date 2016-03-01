@@ -190,6 +190,7 @@ impl AsRef<[ElementaryImageMagickOperation]> for ImageMagickOperation {
         self.ops.as_ref()
     }
 }
+ 
 
 impl RunOperation for ImageMagickOperation {
     fn run_operation(op: ImageMagickOperation) -> OperationResults {

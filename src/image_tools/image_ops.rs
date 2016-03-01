@@ -17,21 +17,21 @@ pub type FileName = String;
 pub type FilePath = String;
 
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ResolutionUnits {
     PixelsPerInch,
     PixelsPerCentimeter,
 }
 
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Direction {
     Horizontal,
     Vertical,
 }
 
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ImageFileFormat {
     TIFF,
     PNG,
@@ -40,7 +40,7 @@ pub enum ImageFileFormat {
 }
 
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 struct ImageDimensions {
     x_pixels: Pixels,
     y_pixels: Pixels,
@@ -56,7 +56,7 @@ impl ImageDimensions {
 }
 
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct ImageResolution {
     amount: Pixels,
     units: ResolutionUnits,
@@ -71,7 +71,7 @@ impl ImageResolution {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum PageOps {
     NoOperation,
     Identify(FileName, FilePath),
@@ -130,7 +130,7 @@ impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct CompoundPageOperation<Op> {
     page_name: FileName,
     page_path: FilePath,
@@ -151,7 +151,6 @@ impl<Op> CompoundPageOperation<Op> where Op: Clone {
             ops: vec,
         }
     }
-
 
     fn make_no_op(page_name: FileName, page_path: FilePath) -> CompoundPageOperation<Op> {
         CompoundPageOperation {
@@ -297,7 +296,7 @@ impl<Op> AsRef<[Op]> for CompoundPageOperation<Op> {
 }
 
 
-#[derive(Clone, Eq)]
+#[derive(Clone, Eq, Debug)]
 struct Page {
     file_name: FileName,
     file_extension: ImageFileFormat,
@@ -350,6 +349,7 @@ impl Hash for Page {
 pub type OperationResult = IoResult<String>;
 
 
+#[derive(Debug)]
 pub struct OperationResults {
     results: Vec<OperationResult>,
 }
@@ -405,13 +405,20 @@ impl From<OperationResult> for OperationResults {
 }
 
 
-#[derive(Clone)]
+impl AsRef<[OperationResult]> for OperationResults {
+    fn as_ref(&self) -> &[OperationResult] {
+        self.results.as_ref()
+    }
+}
+
+
+#[derive(Clone, Debug)]
 struct OperationPlan<Op> {
     plan: HashMap<Page, CompoundPageOperation<Op>>, 
 }
 
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 enum OperationPlanError {
     LengthMismatch,
     Aborted,
@@ -547,6 +554,7 @@ impl<Op> Iterator for OpPlanIntoIter<Op> {
 }
 
 
+#[derive(Debug)]
 struct OperationPlanResult {
     results: HashMap<Page, OperationResults>,
 }
