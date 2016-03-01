@@ -5,9 +5,11 @@ use std::iter::{Iterator, IntoIterator};
 use std::collections::HashMap;
 use std::collections::hash_map;
 use std::vec::Vec;
+use std::vec;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
 use std::convert::From;
+use std::slice;
 
 
 pub type Pixels = usize;
@@ -164,6 +166,11 @@ impl<Op> CompoundPageOperation<Op> where Op: Clone {
         self.ops.is_empty()
     }
 
+    fn iter(&self) -> CPOIter<Op> {
+        CPOIter {
+            inner: self.ops.iter()
+        }
+    }
 /*  TODO: Move into a RunOperation instance.
     fn run_operation<Op>(&self) -> OperationResults
         where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
@@ -215,6 +222,7 @@ impl CompoundPageOperation<PageOps> {
     }
 }
 
+
 // TODO: Implement this.
 impl<Op, OtherOp> CompileOperation<CompoundPageOperation<Op>, CompoundPageOperation<OtherOp>>
     for CompoundPageOperation<Op> where Op: CompileOperation<Op, OtherOp> {
@@ -224,6 +232,51 @@ impl<Op, OtherOp> CompileOperation<CompoundPageOperation<Op>, CompoundPageOperat
         }
     }
 
+
+struct CPOIter<'a, Op> where Op: 'a {
+    inner: slice::Iter<'a, Op>,
+}
+
+impl<'a, Op> Iterator for CPOIter<'a, Op> {
+    type Item = &'a Op;
+
+    fn next(&mut self) -> Option<&'a Op> {
+        self.inner.next()
+    }
+}
+
+struct CPOIntoIter<Op> {
+    inner: vec::IntoIter<Op>,
+}
+
+impl<Op> IntoIterator for CompoundPageOperation<Op> {
+    type Item = Op;
+    type IntoIter = CPOIntoIter<Op>;
+
+    fn into_iter(self) -> CPOIntoIter<Op> {
+        CPOIntoIter {
+            inner: self.ops.into_iter(),
+        }
+    }
+}
+
+impl<Op> Iterator for CPOIntoIter<Op> {
+    type Item = Op;
+
+    fn next(&mut self) -> Option<Op> {
+        self.inner.next()
+    }
+}
+
+impl<'a, Op> IntoIterator for &'a CompoundPageOperation<Op> where Op: Clone {
+    type Item = &'a Op;
+    type IntoIter = CPOIter<'a, Op>;
+
+    fn into_iter(self) -> CPOIter<'a, Op> {
+        self.iter()
+    }
+
+}
 
 #[derive(Clone, Eq)]
 struct Page {
