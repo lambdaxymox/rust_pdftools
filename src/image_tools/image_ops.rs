@@ -594,5 +594,3 @@ enum OperationPlanStatus {
     UnExecuted,
 }
 
-
-
