@@ -69,7 +69,7 @@ impl ImageResolution {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum PageOps {
     NoOperation,
     Identify(FileName, FilePath),
@@ -106,7 +106,6 @@ pub trait RunOperation {
 
 trait CompileOperation<OpType, Op> {
     fn compile_operation(op: OpType) -> Op;
-    //fn apply_operation(op: Op)   -> ();
 }
 
 impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations {
@@ -133,21 +132,12 @@ impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations
 struct CompoundPageOperation<Op> {
     page_name: FileName,
     page_path: FilePath,
-    ops: Option<Vec<Op>>,
+    ops: Vec<Op>,
 }
 
 impl<Op> CompoundPageOperation<Op> where Op: Clone {
 
     fn new(page_name: FileName, page_path: FilePath, ops: &[Op]) -> CompoundPageOperation<Op> {
-        
-        if ops.is_empty() {
-            return CompoundPageOperation {
-                page_name: page_name,
-                page_path: page_path,
-                ops: None,
-            };
-        }
-
         let mut vec = Vec::new();
         for op in ops.iter() {
             vec.push(op.clone());
@@ -156,27 +146,25 @@ impl<Op> CompoundPageOperation<Op> where Op: Clone {
         CompoundPageOperation {
             page_name: page_name,
             page_path: page_path,
-            ops: Some(vec),
+            ops: vec,
         }
     }
 
 
-    fn make_noop() -> CompoundPageOperation<Op> {
+    fn make_no_op(page_name: FileName, page_path: FilePath) -> CompoundPageOperation<Op> {
         CompoundPageOperation {
-            page_name: String::from(""),
-            page_path: String::from(""),
-            ops: None,
+            page_name: page_name,
+            page_path: page_path,
+            ops: Vec::new(),
         }
     }
 
-    fn is_noop(&self) -> bool {
-        match self.ops {
-            Some(ref vec) => vec.is_empty(),
-            None          => true,
-        }
+
+    fn is_no_op(&self) -> bool {
+        self.ops.is_empty()
     }
 
-/*
+/*  TODO: Move into a RunOperation instance.
     fn run_operation<Op>(&self) -> OperationResults
         where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
@@ -214,6 +202,27 @@ impl<Op> CompoundPageOperation<Op> where Op: Clone {
     }
 */
 }
+
+impl CompoundPageOperation<PageOps> {
+    fn is_no_op(&self) -> bool {
+        for op in self.ops.iter() {
+            if *op == PageOps::NoOperation {
+                return true;
+            }
+        }
+
+        false
+    }
+}
+
+// TODO: Implement this.
+impl<Op, OtherOp> CompileOperation<CompoundPageOperation<Op>, CompoundPageOperation<OtherOp>>
+    for CompoundPageOperation<Op> where Op: CompileOperation<Op, OtherOp> {
+
+        fn compile_operation(op: CompoundPageOperation<Op>) -> CompoundPageOperation<OtherOp> {
+            unimplemented!();
+        }
+    }
 
 
 #[derive(Clone, Eq)]
@@ -370,7 +379,7 @@ impl<Op> OperationPlan<Op> where Op: Clone {
             inner: self.plan.iter()
         }
     }
-/*
+/*  TODO: Move into a RunOperation instance.
     fn run_operation<Op>(&self) -> OperationResults 
         where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
