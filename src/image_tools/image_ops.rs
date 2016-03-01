@@ -242,6 +242,21 @@ impl<Op, OtherOp> CompileOperation<CompoundPageOperation<Op>, CompoundPageOperat
     }
 }
 
+impl<Op> RunOperation for CompoundPageOperation<Op>
+    where Op: RunOperation {
+
+    fn run_operation(op: CompoundPageOperation<Op>) -> OperationResults {
+        let mut final_results = OperationResults::new();
+
+        for elem_op in op {
+            let mut results = Op::run_operation(elem_op);
+            final_results.append(&mut results);
+        }  
+
+        final_results
+    }
+}
+
 
 /// Iterator interface for a CompoundPageOperation.
 struct CPOIter<'a, Op> where Op: 'a {
@@ -459,32 +474,7 @@ impl<Op> OperationPlan<Op> where Op: Clone {
             inner: self.plan.iter()
         }
     }
-/*  TODO: Move into a RunOperation instance.
-    fn run_operation<Op>(&self) -> OperationResults 
-        where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
-        let mut results = OperationResults::new();
-
-        for (page, op) in self {
-            
-            match op.ops {
-                None => {
-                    continue;
-                } 
-                Some(ref operations) => {
-                    for elem_op in operations {
-                        let compiled_op = Op::compile_operation(elem_op.clone());
-                        let mut result = Op::run_operation(compiled_op);
-                        results.append(&mut result);
-                    }
-                }
-            }
-
-        }
-
-        results
-    }
-*/
 }
 
 
@@ -620,4 +610,12 @@ impl Iterator for OpPlanResultIntoIter {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
     }
+}
+
+
+trait ExecutePlan<P> {
+    type ExecutionResult;
+
+    fn execute_plan(&self) -> Self::ExecutionResult;
+    fn abort_plan(&self) -> Self::ExecutionResult;
 }
