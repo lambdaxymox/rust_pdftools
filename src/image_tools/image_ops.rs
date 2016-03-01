@@ -106,6 +106,7 @@ pub trait RunOperation {
 
 trait CompileOperation<OpType, Op> where Op: ElementaryPageOperations {
     fn compile_operation(op: OpType) -> Op;
+    //fn apply_operation(&self, op: Op)   -> ();
 }
 
 impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations {
@@ -207,15 +208,6 @@ impl CompoundPageOperation {
                 OperationResults::from(result)
             }
         }
-    }
-
-}
-
-impl<Op> CompileOperation<CompoundPageOperation, Op> for Op 
-    where Op: ElementaryPageOperations + CompileOperation<CompoundPageOperation, Op> {
-
-    fn compile_operation(comp_op: CompoundPageOperation) -> Op {
-        unimplemented!();
     }
 
 }
@@ -335,8 +327,9 @@ struct OperationPlan {
 
 
 #[derive(Clone, Eq, PartialEq)]
-enum OperationScheduleError {
+enum OperationPlanError {
     LengthMismatch,
+    Aborted,
 }
 
 
@@ -351,7 +344,7 @@ impl OperationPlan {
         self.schedule.insert(page, op);
     }
 
-    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, OperationScheduleError> {
+    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, OperationPlanError> {
         if pages.len() == ops.len() {
 
             let mut schedule = OperationPlan::new();
@@ -363,7 +356,7 @@ impl OperationPlan {
             Ok(schedule)
         
         } else {
-            Err(OperationScheduleError::LengthMismatch)
+            Err(OperationPlanError::LengthMismatch)
         }
 
 
