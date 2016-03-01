@@ -398,6 +398,7 @@ impl From<OperationResult> for OperationResults {
 }
 
 
+#[derive(Clone)]
 struct OperationPlan<Op> {
     plan: HashMap<Page, CompoundPageOperation<Op>>, 
 }
@@ -417,7 +418,7 @@ impl<Op> OperationPlan<Op> where Op: Clone {
         }
     }
     
-    fn add_operation(&mut self, page: Page, op: CompoundPageOperation<Op>) {
+    fn insert(&mut self, page: Page, op: CompoundPageOperation<Op>) {
         self.plan.insert(page, op);
     }
 
@@ -427,7 +428,7 @@ impl<Op> OperationPlan<Op> where Op: Clone {
             let mut plan = OperationPlan::new();
 
             for page_number in 0..pages.len() {
-                plan.add_operation(pages[page_number].clone(), ops[page_number].clone());
+                plan.insert(pages[page_number].clone(), ops[page_number].clone());
             }
 
             Ok(plan)
@@ -479,7 +480,14 @@ impl<Op, OtherOp> CompileOperation<OperationPlan<Op>, OperationPlan<OtherOp>>
               OtherOp: Clone
 {
     fn compile_operation(old_plan: OperationPlan<Op>) -> OperationPlan<OtherOp> {
-        unimplemented!();
+        let mut new_plan = OperationPlan::new();
+
+        for (page, old_op) in old_plan.clone() {
+            let new_op = CompoundPageOperation::<Op>::compile_operation(old_op);
+            new_plan.insert(page.clone(), new_op);
+        }
+
+        new_plan
     }
 }
 
