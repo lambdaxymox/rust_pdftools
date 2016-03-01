@@ -223,16 +223,28 @@ impl CompoundPageOperation<PageOps> {
 }
 
 
-// TODO: Implement this.
+/// Implementation of CompileOperation for compiling between CompoundPageOperations.
+/// TODO: Cloning feels unnecessary here. CompileOperation may be revised to pass append
+///       nonmutable pointer instead.
 impl<Op, OtherOp> CompileOperation<CompoundPageOperation<Op>, CompoundPageOperation<OtherOp>>
-    for CompoundPageOperation<Op> where Op: CompileOperation<Op, OtherOp> {
+    for CompoundPageOperation<Op> 
+        where Op: Clone + CompileOperation<Op, OtherOp>,
+              OtherOp: Clone
+{
+    fn compile_operation(old_ops: CompoundPageOperation<Op>) -> CompoundPageOperation<OtherOp> {
+        let mut new_ops = Vec::new();
 
-        fn compile_operation(op: CompoundPageOperation<Op>) -> CompoundPageOperation<OtherOp> {
-            unimplemented!();
+        for old_op in old_ops.clone() {
+            let new_op = Op::compile_operation(old_op);
+            new_ops.push(new_op);
         }
+
+        CompoundPageOperation::new(old_ops.page_name.clone(), old_ops.page_path.clone(), new_ops.as_ref())
     }
+}
 
 
+/// Iterator interface for a CompoundPageOperation.
 struct CPOIter<'a, Op> where Op: 'a {
     inner: slice::Iter<'a, Op>,
 }
@@ -458,6 +470,17 @@ impl<Op> OperationPlan<Op> where Op: Clone {
         results
     }
 */
+}
+
+
+impl<Op, OtherOp> CompileOperation<OperationPlan<Op>, OperationPlan<OtherOp>> 
+    for OperationPlan<Op>
+        where Op: CompileOperation<Op, OtherOp> + Clone,
+              OtherOp: Clone
+{
+    fn compile_operation(old_plan: OperationPlan<Op>) -> OperationPlan<OtherOp> {
+        unimplemented!();
+    }
 }
 
 
