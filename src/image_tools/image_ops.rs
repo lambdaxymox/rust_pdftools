@@ -290,6 +290,13 @@ impl<'a, Op> IntoIterator for &'a CompoundPageOperation<Op> where Op: Clone {
 
 }
 
+impl<Op> AsRef<[Op]> for CompoundPageOperation<Op> {
+    fn as_ref(&self) -> &[Op] {
+        self.ops.as_ref()
+    }
+}
+
+
 #[derive(Clone, Eq)]
 struct Page {
     file_name: FileName,
