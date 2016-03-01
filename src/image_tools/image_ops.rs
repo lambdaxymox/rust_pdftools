@@ -393,6 +393,7 @@ impl AsRef<[OperationResult]> for OperationResults {
 
 #[derive(Clone, Debug)]
 struct OperationPlan<Op> {
+    status: OperationPlanStatus,
     plan: HashMap<Page, CompoundPageOperation<Op>>, 
 }
 
@@ -407,6 +408,7 @@ enum OperationPlanError {
 impl<Op> OperationPlan<Op> where Op: Clone {
     fn new() -> OperationPlan<Op> {
         OperationPlan {
+            status: OperationPlanStatus::NotExecuted,
             plan: HashMap::new(),
         }
     }
@@ -508,14 +510,25 @@ impl<Op> Iterator for OpPlanIntoIter<Op> {
 }
 
 
+#[derive(Clone, Eq, PartialEq, Debug)]
+enum OperationPlanStatus {
+    NotExecuted,
+    Completed,
+    ErrorsOcurred,
+    Aborted,
+}
+
+
 #[derive(Debug)]
 struct OperationPlanResult {
+    status: OperationPlanStatus,
     results: HashMap<Page, OperationResults>,
 }
 
 impl OperationPlanResult {
     fn new() -> OperationPlanResult {
         OperationPlanResult {
+            status: OperationPlanStatus::NotExecuted,
             results: HashMap::new(),
         }
     }
@@ -577,7 +590,7 @@ impl Iterator for OpPlanResultIntoIter {
 }
 
 
-trait ExecutePlan<PlanType, OpType> where OpType: RunOperation {
+trait ExecutePlan<OpType> where OpType: RunOperation {
     type ExecutionResult;
     type ExecutionStatus;
 
@@ -586,11 +599,22 @@ trait ExecutePlan<PlanType, OpType> where OpType: RunOperation {
     fn plan_status(&self)  -> Self::ExecutionStatus;
 }
 
-enum OperationPlanStatus {
-    Completed,
-    Executing,
-    ErrorsOcurred,
-    Aborted,
-    UnExecuted,
-}
 
+impl<Op> ExecutePlan<Op> for OperationPlan<Op> 
+    where Op: RunOperation
+{
+    type ExecutionResult = OperationPlanResult;
+    type ExecutionStatus = OperationPlanStatus;
+
+    fn plan_status(&self) -> OperationPlanStatus {
+        self.status.clone()
+    }
+
+    fn execute_plan(&self) -> OperationPlanResult {
+        unimplemented!();
+    }
+
+    fn abort_plan(&self) -> OperationPlanResult {
+        unimplemented!();
+    }
+}
