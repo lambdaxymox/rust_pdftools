@@ -104,9 +104,9 @@ pub trait RunOperation {
     fn run_operation(op: Self) -> OperationResults;
 }
 
-trait CompileOperation<OpType, Op> where Op: ElementaryPageOperations {
+trait CompileOperation<OpType, Op> {
     fn compile_operation(op: OpType) -> Op;
-    //fn apply_operation(&self, op: Op)   -> ();
+    //fn apply_operation(op: Op)   -> ();
 }
 
 impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations {
@@ -130,14 +130,15 @@ impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations
 
 
 #[derive(Clone)]
-struct CompoundPageOperation {
+struct CompoundPageOperation<Op> {
     page_name: FileName,
     page_path: FilePath,
-    ops: Option<Vec<PageOps>>,
+    ops: Option<Vec<Op>>,
 }
 
-impl CompoundPageOperation {
-    fn new(page_name: FileName, page_path: FilePath, ops: &[PageOps]) -> CompoundPageOperation {
+impl<Op> CompoundPageOperation<Op> where Op: Clone {
+
+    fn new(page_name: FileName, page_path: FilePath, ops: &[Op]) -> CompoundPageOperation<Op> {
         
         if ops.is_empty() {
             return CompoundPageOperation {
@@ -159,7 +160,8 @@ impl CompoundPageOperation {
         }
     }
 
-    fn make_noop() -> CompoundPageOperation {
+
+    fn make_noop() -> CompoundPageOperation<Op> {
         CompoundPageOperation {
             page_name: String::from(""),
             page_path: String::from(""),
@@ -174,6 +176,7 @@ impl CompoundPageOperation {
         }
     }
 
+/*
     fn run_operation<Op>(&self) -> OperationResults
         where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
@@ -209,7 +212,7 @@ impl CompoundPageOperation {
             }
         }
     }
-
+*/
 }
 
 
@@ -321,8 +324,8 @@ impl From<OperationResult> for OperationResults {
 }
 
 
-struct OperationPlan {
-    schedule: HashMap<Page, CompoundPageOperation>, 
+struct OperationPlan<Op> {
+    plan: HashMap<Page, CompoundPageOperation<Op>>, 
 }
 
 
@@ -333,27 +336,27 @@ enum OperationPlanError {
 }
 
 
-impl OperationPlan {
-    fn new() -> OperationPlan {
+impl<Op> OperationPlan<Op> where Op: Clone {
+    fn new() -> OperationPlan<Op> {
         OperationPlan {
-            schedule: HashMap::new(),
+            plan: HashMap::new(),
         }
     }
     
-    fn add_operation(&mut self, page: Page, op: CompoundPageOperation) {
-        self.schedule.insert(page, op);
+    fn add_operation(&mut self, page: Page, op: CompoundPageOperation<Op>) {
+        self.plan.insert(page, op);
     }
 
-    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation]) -> Result<Self, OperationPlanError> {
+    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation<Op>]) -> Result<Self, OperationPlanError> {
         if pages.len() == ops.len() {
 
-            let mut schedule = OperationPlan::new();
+            let mut plan = OperationPlan::new();
 
             for page_number in 0..pages.len() {
-                schedule.add_operation(pages[page_number].clone(), ops[page_number].clone());
+                plan.add_operation(pages[page_number].clone(), ops[page_number].clone());
             }
 
-            Ok(schedule)
+            Ok(plan)
         
         } else {
             Err(OperationPlanError::LengthMismatch)
@@ -362,12 +365,12 @@ impl OperationPlan {
 
     }
 
-    fn iter(&self) -> OpPlanIter {
+    fn iter(&self) -> OpPlanIter<Op> {
         OpPlanIter {
-            inner: self.schedule.iter()
+            inner: self.plan.iter()
         }
     }
-
+/*
     fn run_operation<Op>(&self) -> OperationResults 
         where Op: ElementaryPageOperations + RunOperation + CompileOperation<PageOps, Op> {
 
@@ -392,15 +395,17 @@ impl OperationPlan {
 
         results
     }
+*/
 }
+
 
 /// Iterator implementation for OperationPlan.
-struct OpPlanIter<'a> {
-    inner:  hash_map::Iter<'a, Page, CompoundPageOperation>
+struct OpPlanIter<'a, Op: 'a> {
+    inner:  hash_map::Iter<'a, Page, CompoundPageOperation<Op>>
 }
 
-impl<'a> Iterator for OpPlanIter<'a> {
-    type Item = (&'a Page, &'a CompoundPageOperation);
+impl<'a, Op> Iterator for OpPlanIter<'a, Op> {
+    type Item = (&'a Page, &'a CompoundPageOperation<Op>);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -409,34 +414,34 @@ impl<'a> Iterator for OpPlanIter<'a> {
 }
 
 /// IntoIterator implementation for OperationPlan.
-impl<'a> IntoIterator for &'a OperationPlan {
-    type Item = (&'a Page, &'a CompoundPageOperation);
-    type IntoIter = OpPlanIter<'a>;
+impl<'a, Op> IntoIterator for &'a OperationPlan<Op> where Op: Clone {
+    type Item = (&'a Page, &'a CompoundPageOperation<Op>);
+    type IntoIter = OpPlanIter<'a, Op>;
 
-    fn into_iter(self) -> OpPlanIter<'a> {
+    fn into_iter(self) -> OpPlanIter<'a, Op> {
         self.iter()
     }
 }
 
-struct OpPlanIntoIter {
-    inner: hash_map::IntoIter<Page, CompoundPageOperation>,
+struct OpPlanIntoIter<Op> {
+    inner: hash_map::IntoIter<Page, CompoundPageOperation<Op>>,
 }
 
-impl IntoIterator for OperationPlan {
-    type Item = (Page, CompoundPageOperation);
-    type IntoIter = OpPlanIntoIter;
+impl<Op> IntoIterator for OperationPlan<Op> {
+    type Item = (Page, CompoundPageOperation<Op>);
+    type IntoIter = OpPlanIntoIter<Op>;
 
-    fn into_iter(self) -> OpPlanIntoIter {
+    fn into_iter(self) -> OpPlanIntoIter<Op> {
         OpPlanIntoIter {
-            inner: self.schedule.into_iter()
+            inner: self.plan.into_iter()
         }
     }
 }
 
-impl Iterator for OpPlanIntoIter {
-    type Item = (Page, CompoundPageOperation);
+impl<Op> Iterator for OpPlanIntoIter<Op> {
+    type Item = (Page, CompoundPageOperation<Op>);
 
-    fn next(&mut self) -> Option<(Page, CompoundPageOperation)> {
+    fn next(&mut self) -> Option<(Page, CompoundPageOperation<Op>)> {
         self.inner.next()
     }
 }
