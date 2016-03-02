@@ -324,18 +324,27 @@ impl Hash for Page {
     }
 }
 
-
+// TODO: Define a trait here with an interface to OperationResults.
 pub type OperationResult = IoResult<String>;
 
+#[derive(Clone, Eq, PartialEq, Debug)]
+enum OperationStatus {
+    NotExecuted,         // Not (yes) run
+    Completed,           // Ran to completion with not errors reported
+    ErrorsOccurred,      // Completed with errors. Do not allow?
+    Aborted,             // Errors Occurred, operation aborted.
+}
 
 #[derive(Debug)]
 pub struct OperationResults {
+    status: OperationStatus,
     results: Vec<OperationResult>,
 }
 
 impl OperationResults {
     pub fn new() -> OperationResults {
         OperationResults {
+            status:  OperationStatus::NotExecuted,
             results: Vec::new(),
         }
     }
@@ -356,6 +365,7 @@ impl From<Vec<OperationResult>> for OperationResults {
     }
 }
 
+/// TODO: Do more sophisticated error analysis here.
 /// Destructive conversion from a mutable vector of OperationResult
 /// to simplify the process of returning results from running operations.
 impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
@@ -364,11 +374,13 @@ impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
         results.append(vec);
 
         OperationResults {
+            status: OperationStatus::Completed,
             results: results,
         }
     }
 }
 
+/// TODO: Do more sophisticated error analysis here.
 /// Generates an OperationResults struct from a single OperationResult.
 /// For compatibility between operations that may return multiple results
 /// and ones that may return only one result.
@@ -378,6 +390,7 @@ impl From<OperationResult> for OperationResults {
         results.push(op_res);
 
         OperationResults {
+            status: OperationStatus::Completed,
             results: results
         }
     }
@@ -393,7 +406,6 @@ impl AsRef<[OperationResult]> for OperationResults {
 
 #[derive(Clone, Debug)]
 struct OperationPlan<Op> {
-    status: OperationPlanStatus,
     plan: HashMap<Page, CompoundPageOperation<Op>>, 
 }
 
@@ -408,7 +420,6 @@ enum OperationPlanError {
 impl<Op> OperationPlan<Op> where Op: Clone {
     fn new() -> OperationPlan<Op> {
         OperationPlan {
-            status: OperationPlanStatus::NotExecuted,
             plan: HashMap::new(),
         }
     }
@@ -514,8 +525,9 @@ impl<Op> Iterator for OpPlanIntoIter<Op> {
 enum OperationPlanStatus {
     NotExecuted,
     Completed,
-    ErrorsOcurred,
-    Aborted,
+    CompletedWithErrors, // Do not allow?
+    AbortedWithoutErrors,
+    AbortedWithErrors,
 }
 
 
@@ -541,6 +553,10 @@ impl OperationPlanResult {
         OpPlanResultIter {
             inner: self.results.iter()
         }
+    }
+
+    fn plan_status(&self) -> OperationPlanStatus {
+        self.status.clone()
     }
 }
 
@@ -592,11 +608,9 @@ impl Iterator for OpPlanResultIntoIter {
 
 trait ExecutePlan<OpType> where OpType: RunOperation {
     type ExecutionResult;
-    type ExecutionStatus;
 
-    fn execute_plan(&self) -> Self::ExecutionResult;
-    fn abort_plan(&self)   -> Self::ExecutionResult;
-    fn plan_status(&self)  -> Self::ExecutionStatus;
+    fn execute_plan(&self)                               -> Self::ExecutionResult;
+    fn abort_plan(&self, result: &Self::ExecutionResult) -> Self::ExecutionResult;
 }
 
 
@@ -604,17 +618,12 @@ impl<Op> ExecutePlan<Op> for OperationPlan<Op>
     where Op: RunOperation
 {
     type ExecutionResult = OperationPlanResult;
-    type ExecutionStatus = OperationPlanStatus;
-
-    fn plan_status(&self) -> OperationPlanStatus {
-        self.status.clone()
-    }
 
     fn execute_plan(&self) -> OperationPlanResult {
         unimplemented!();
     }
 
-    fn abort_plan(&self) -> OperationPlanResult {
+    fn abort_plan(&self, result: &OperationPlanResult) -> OperationPlanResult {
         unimplemented!();
     }
 }
