@@ -691,21 +691,21 @@ trait ExecutePlan<OpType> where OpType: RunOperation {
 
 
 impl<Op> ExecutePlan<Op> for OperationPlan<Op> 
-    where Op: RunOperation
+    where Op: RunOperation + Clone
 {
     type ExecutionResult = OperationPlanResult;
 
     /// Execute plan does not short circuit by default.
     /// TODO: Incorporate Execution strategies into executing plans.
     fn execute_plan(&self) -> OperationPlanResult {
-    /*    let mut report = OperationPlanResult::new();
+        let mut report = OperationPlanResult::new();
 
         for (page, op) in self {
-            let result = op.run_operation();
-            report.insert(page, op);
+            let result = CompoundPageOperation::<Op>::run_operation(op.clone());
+            report.insert(page.clone(), result);
         }
-    */
-        unimplemented!();
+
+        report
     }
 
     /// 
