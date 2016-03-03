@@ -458,7 +458,6 @@ struct OperationPlan<Op> {
 #[derive(Clone, Eq, PartialEq, Debug)]
 enum OperationPlanError {
     LengthMismatch,
-    Aborted,
 }
 
 
