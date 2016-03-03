@@ -122,6 +122,7 @@ impl ImageMagickOperation {
             self.ops.push(op.clone());
         }
     }
+
 }
 
 // This implementation will be the generator for the sequence of 
@@ -179,8 +180,14 @@ impl ElementaryPageOperations for ImageMagickOperation {
     fn set_resolution(res: ImageResolution)    -> ImageMagickOperation {
         unimplemented!();
     }
+
     fn no_operation()                          -> ImageMagickOperation {
-        unimplemented!();
+        let mut op = ImageMagickOperation::new();
+        let args = ImageMagickArgs::new(String::from(""), String::from(""), &Vec::new());
+        let elem_op = ElementaryImageMagickOperation::new(ImageMagickOpType::NoOperation, args);
+        op.add_op(elem_op);
+
+        op
     }
 }
 
