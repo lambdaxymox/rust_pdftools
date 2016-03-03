@@ -455,12 +455,6 @@ struct OperationPlan<Op> {
 }
 
 
-#[derive(Clone, Eq, PartialEq, Debug)]
-enum OperationPlanError {
-    LengthMismatch,
-}
-
-
 impl<Op> OperationPlan<Op> where Op: Clone {
     fn new() -> OperationPlan<Op> {
         OperationPlan {
@@ -472,7 +466,7 @@ impl<Op> OperationPlan<Op> where Op: Clone {
         self.plan.insert(page, op);
     }
 
-    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation<Op>]) -> Result<Self, OperationPlanError> {
+    fn build_schedule(pages: &[Page], ops: &[CompoundPageOperation<Op>]) -> Result<Self, String> {
         if pages.len() == ops.len() {
 
             let mut plan = OperationPlan::new();
@@ -484,7 +478,7 @@ impl<Op> OperationPlan<Op> where Op: Clone {
             Ok(plan)
         
         } else {
-            Err(OperationPlanError::LengthMismatch)
+            Err(String::from("Length Mismatch"))
         }
 
 
