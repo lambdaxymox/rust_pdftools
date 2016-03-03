@@ -329,10 +329,10 @@ pub type OperationResult = IoResult<String>;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 enum OperationStatus {
-    NotExecuted,         // Not (yes) run
-    Completed,           // Ran to completion with not errors reported
-    ErrorsOccurred,      // Completed with errors. Do not allow?
-    Aborted,             // Errors Occurred, operation aborted.
+    NotExecuted,    // Not (yet) run
+    Completed,      // Ran to completion with not errors reported
+    Failed,         // Completed with errors.
+    Aborted,        // Operation aborted.
 }
 
 #[derive(Debug)]
@@ -350,11 +350,46 @@ impl OperationResults {
     }
 
     pub fn push(&mut self, result: OperationResult) {
+        if result.is_err() {
+            self.status = OperationStatus::Failed;
+        }
+
+        if self.status == OperationStatus::NotExecuted {
+            self.status = OperationStatus::Completed;
+        }
+
         self.results.push(result);
     }
 
     pub fn append(&mut self, other: &mut OperationResults) {
+        
+        let mut status = OperationStatus::NotExecuted;
+
+        for res in other.results.iter() {
+            if res.is_err() {
+                status = OperationStatus::Failed;
+                break;
+            }
+        }
+
+        if other.is_empty() {
+            status = OperationStatus::Completed;
+        }
+
         self.results.append(&mut other.results);
+        self.status = status;
+    }
+
+    pub fn is_failed(&self) -> bool {
+        self.status == OperationStatus::Failed
+    }
+
+    pub fn is_aborted(&self) -> bool {
+        self.status == OperationStatus::Aborted
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.results.len() == 0
     }
 
 }
@@ -365,7 +400,7 @@ impl From<Vec<OperationResult>> for OperationResults {
     }
 }
 
-/// TODO: Do more sophisticated error analysis here.
+
 /// Destructive conversion from a mutable vector of OperationResult
 /// to simplify the process of returning results from running operations.
 impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
@@ -373,25 +408,41 @@ impl<'a> From<&'a mut Vec<OperationResult>> for OperationResults {
         let mut results = Vec::new();
         results.append(vec);
 
+        let mut status = OperationStatus::Completed;
+
+        for result in results.iter() {
+            if result.is_err() {
+                status = OperationStatus::Failed;
+                break;
+            }
+        } 
+
         OperationResults {
-            status: OperationStatus::Completed,
+            status: status,
             results: results,
         }
     }
 }
 
-/// TODO: Do more sophisticated error analysis here.
+
 /// Generates an OperationResults struct from a single OperationResult.
 /// For compatibility between operations that may return multiple results
 /// and ones that may return only one result.
 impl From<OperationResult> for OperationResults {
     fn from(op_res: OperationResult) -> OperationResults {
         let mut results = Vec::new();
+
+        let status = if op_res.is_err() {
+                        OperationStatus::Failed
+                    } else {
+                        OperationStatus::Completed
+                    };
+
         results.push(op_res);
 
         OperationResults {
-            status: OperationStatus::Completed,
-            results: results
+            status: status,
+            results: results,
         }
     }
 }
@@ -523,11 +574,10 @@ impl<Op> Iterator for OpPlanIntoIter<Op> {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 enum OperationPlanStatus {
-    NotExecuted,
+    NotCompleted,
     Completed,
-    CompletedWithErrors, // Do not allow?
-    AbortedWithoutErrors,
-    AbortedWithErrors,
+    Failed,
+    Aborted,
 }
 
 
@@ -540,12 +590,40 @@ struct OperationPlanResult {
 impl OperationPlanResult {
     fn new() -> OperationPlanResult {
         OperationPlanResult {
-            status: OperationPlanStatus::NotExecuted,
+            status: OperationPlanStatus::NotCompleted,
             results: HashMap::new(),
         }
     }
 
     fn insert(&mut self, page: Page, res: OperationResults) {
+        let status = res.status.clone();
+
+        self.status = match self.status {
+            OperationPlanStatus::Failed      =>     OperationPlanStatus::Failed,
+            OperationPlanStatus::NotCompleted => {
+                match status {
+                    OperationStatus::NotExecuted => OperationPlanStatus::NotCompleted,
+                    OperationStatus::Completed   => OperationPlanStatus::Completed,
+                    OperationStatus::Failed      => OperationPlanStatus::Failed,
+                    OperationStatus::Aborted     => OperationPlanStatus::Aborted,
+                }
+            }
+            OperationPlanStatus::Completed   => {
+                match status {
+                    OperationStatus::NotExecuted => OperationPlanStatus::NotCompleted, // FIXME: Change this case.
+                    OperationStatus::Completed   => OperationPlanStatus::Completed,
+                    OperationStatus::Failed      => OperationPlanStatus::Failed,
+                    OperationStatus::Aborted     => OperationPlanStatus::Failed,
+                }
+            }
+            OperationPlanStatus::Aborted     => {
+                match status {
+                    OperationStatus::Aborted     => OperationPlanStatus::Aborted,
+                    _                            => OperationPlanStatus::Failed,
+                }
+            }
+        };
+
         self.results.insert(page, res);
     }
 
@@ -557,6 +635,10 @@ impl OperationPlanResult {
 
     fn plan_status(&self) -> OperationPlanStatus {
         self.status.clone()
+    }
+
+    fn is_not_completed(&self) -> bool {
+        self.status == OperationPlanStatus::NotCompleted
     }
 }
 
