@@ -324,7 +324,7 @@ impl Hash for Page {
     }
 }
 
-// TODO: Define a trait here with an interface to OperationResults.
+
 pub type OperationResult = IoResult<String>;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -392,12 +392,6 @@ impl OperationResults {
         self.results.len() == 0
     }
 
-}
-
-impl From<Vec<OperationResult>> for OperationResults {
-    fn from(vec: Vec<OperationResult>) -> OperationResults {
-        unimplemented!();
-    }
 }
 
 
@@ -692,7 +686,7 @@ trait ExecutePlan<OpType> where OpType: RunOperation {
     type ExecutionResult;
 
     fn execute_plan(&self)                               -> Self::ExecutionResult;
-    fn abort_plan(&self, result: &Self::ExecutionResult) -> Self::ExecutionResult;
+    fn abort_plan(&self, result: &mut Self::ExecutionResult) -> Self::ExecutionResult;
 }
 
 
@@ -701,11 +695,21 @@ impl<Op> ExecutePlan<Op> for OperationPlan<Op>
 {
     type ExecutionResult = OperationPlanResult;
 
+    /// Execute plan does not short circuit by default.
+    /// TODO: Incorporate Execution strategies into executing plans.
     fn execute_plan(&self) -> OperationPlanResult {
+    /*    let mut report = OperationPlanResult::new();
+
+        for (page, op) in self {
+            let result = op.run_operation();
+            report.insert(page, op);
+        }
+    */
         unimplemented!();
     }
 
-    fn abort_plan(&self, result: &OperationPlanResult) -> OperationPlanResult {
+    /// 
+    fn abort_plan(&self, result: &mut OperationPlanResult) -> OperationPlanResult {
         unimplemented!();
     }
 }
