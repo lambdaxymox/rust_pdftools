@@ -18,7 +18,6 @@ fn main() {
         let op: IMO = EPO::identify(String::from(""), args[1].clone());
         let res = RO::run_operation(op);
         println!("Operation completed.");
-        //println!("{}\n", RO::run_operation(op)); 
     } else {
         println!("{}", usage());
     }

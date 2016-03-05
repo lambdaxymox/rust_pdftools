@@ -71,6 +71,9 @@ impl ImageResolution {
     }
 }
 
+/// The most primitive page operations defined for working with
+/// pdf files. The basic operations allow one to rescale pages, expand edges,
+/// and adjust DPI for normalizing page dimensions.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum PageOps {
     NoOperation,
@@ -130,6 +133,9 @@ impl<Op> CompileOperation<PageOps, Op> for Op where Op: ElementaryPageOperations
 }
 
 
+/// CompoundPageOperation enables the ability to apply more than one
+/// page operation in sequence, so that more complicated page operations
+/// may be constructed in terms of the elementary page operations. 
 #[derive(Clone, Debug)]
 struct CompoundPageOperation<Op> {
     page_name: FileName,
@@ -442,6 +448,7 @@ impl From<OperationResult> for OperationResults {
 }
 
 
+/// Enables the ability to read operation result as a slice.
 impl AsRef<[OperationResult]> for OperationResults {
     fn as_ref(&self) -> &[OperationResult] {
         self.results.as_ref()
@@ -629,6 +636,7 @@ impl OperationPlanResult {
     }
 }
 
+/// Iterator instances for running over operaton plan results.
 struct OpPlanResultIter<'a> {
     inner: hash_map::Iter<'a, Page, OperationResults>,
 }
