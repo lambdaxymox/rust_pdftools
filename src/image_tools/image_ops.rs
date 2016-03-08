@@ -259,18 +259,13 @@ impl<Op> fmt::Display for CompoundPageOperation<Op> where Op: Clone + fmt::Displ
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut op_string = String::new();
-        let mut last = false;
 
-        for op in self.iter() {
-            if !last {
-                op_string.push_str(op.to_string().as_str());
-                op_string.push_str(", ");
-            } else {
-                op_string.push_str(op.to_string().as_str());
-                last = true;
-            }
+        for i in 0..self.ops.len()-1 {
+            op_string.push_str(self.ops[i].to_string().as_str());
+            op_string.push_str(", ");
         }
-        
+
+        op_string.push_str(self.ops[self.ops.len()-1].to_string().as_str());
         write!(f, "PageOps([{}])", op_string)
     }
 }
