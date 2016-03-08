@@ -10,8 +10,8 @@ use image_tools::image_ops::OperationResults;
 
 
 type ImageMagickArg = String;
-type FileName = String;
-type FilePath = String;
+pub type FileName = String;
+pub type FilePath = String;
 
 #[derive(Clone, Debug)]
 enum ImageMagickOpType {

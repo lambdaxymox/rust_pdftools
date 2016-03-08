@@ -10,6 +10,7 @@ use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
 use std::convert::From;
 use std::slice;
+use std::fmt;
 
 
 pub type Pixels = usize;
@@ -23,6 +24,15 @@ pub enum ResolutionUnits {
     PixelsPerCentimeter,
 }
 
+impl fmt::Display for ResolutionUnits {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ResolutionUnits::PixelsPerInch       => "Pixels per inch".fmt(f),
+            ResolutionUnits::PixelsPerCentimeter => "Pixels per centimeter".fmt(f),
+        }
+    }
+}
+
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Direction {
@@ -30,6 +40,14 @@ pub enum Direction {
     Vertical,
 }
 
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Direction::Horizontal => "Horizontal".fmt(f),
+            Direction::Vertical   => "Vertical".fmt(f),
+        }
+    }
+}
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ImageFileFormat {
@@ -39,9 +57,20 @@ pub enum ImageFileFormat {
     UNKNOWN,
 }
 
+impl fmt::Display for ImageFileFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ImageFileFormat::TIFF    => "TIFF".fmt(f),
+            ImageFileFormat::PNG     => "PNG".fmt(f),
+            ImageFileFormat::JPEG    => "JPEG".fmt(f),
+            ImageFileFormat::UNKNOWN => "UNKNOWN FORMAT".fmt(f),
+        }
+    }
+}
+
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
-struct ImageDimensions {
+pub struct ImageDimensions {
     x_pixels: Pixels,
     y_pixels: Pixels,
 }
@@ -52,6 +81,13 @@ impl ImageDimensions {
             x_pixels: x,
             y_pixels: y,
         }
+    }
+}
+
+impl fmt::Display for ImageDimensions {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} x {} Pixels", self.x_pixels, self.y_pixels)
     }
 }
 
@@ -68,6 +104,12 @@ impl ImageResolution {
             amount: amount,
             units: units,
         }
+    }
+}
+
+impl fmt::Display for ImageResolution {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {}", self.amount, self.units)
     }
 }
 
@@ -104,6 +146,28 @@ pub trait ElementaryPageOperations {
     fn set_resolution(res: ImageResolution)          -> Self;
     fn no_operation()                                -> Self;
 }
+
+/// Display implementations for forward facing data types.
+impl fmt::Display for PageOps {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PageOps::NoOperation                    => write!(f, "NoOperation"),
+            PageOps::Identify(ref file_name, ref file_path) => write!(f, "Identify({}, {})", file_name, file_path),
+            PageOps::Rescale(pixels, ref dir)           => write!(f, "Rescale({} Pixels, {})", pixels, dir),
+            PageOps::ExpandLeftEdge(pixels)         => write!(f, "ExpandLeftEdge({} Pixels)", pixels),
+            PageOps::ExpandRightEdge(pixels)        => write!(f, "ExpandRightEdge({} Pixels)", pixels),
+            PageOps::ExpandTopEdge(pixels)          => write!(f, "ExpandTopEdge({} Pixels)", pixels),
+            PageOps::ExpandBottomEdge(pixels)       => write!(f, "ExpandBottomEdge({} Pixels)", pixels),
+            PageOps::TrimLeftEdge(pixels)           => write!(f, "TrimLeftEdge({} Pixels)", pixels),
+            PageOps::TrimRightEdge(pixels)          => write!(f, "TrimRightEdge({} Pixels)", pixels),
+            PageOps::TrimTopEdge(pixels)            => write!(f, "TrimTopEdge({} Pixels)", pixels),
+            PageOps::TrimBottomEdge(pixels)         => write!(f, "TrimBottomEdge({} Pixels)", pixels),
+            PageOps::SetResolution(ref res)             => write!(f, "SetResolution({})", res),
+        }
+    }
+}
+
 
 pub trait RunOperation {
     fn run_operation(op: Self) -> OperationResults;
@@ -714,3 +778,4 @@ impl<Op> ExecutePlan<Op> for OperationPlan<Op>
         unimplemented!();
     }
 }
+
