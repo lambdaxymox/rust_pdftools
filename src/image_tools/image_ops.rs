@@ -409,7 +409,7 @@ impl Hash for Page {
 
 impl fmt::Display for Page {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!();
+        write!(f, "Page({}, {}, {}, {})", self.file_name, self.file_extension, self.dimensions, self.resolution)
     }
 }
 
