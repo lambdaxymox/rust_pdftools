@@ -152,18 +152,18 @@ impl fmt::Display for PageOps {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            PageOps::NoOperation                    => write!(f, "NoOperation"),
+            PageOps::NoOperation                            => write!(f, "NoOperation"),
             PageOps::Identify(ref file_name, ref file_path) => write!(f, "Identify({}, {})", file_name, file_path),
-            PageOps::Rescale(pixels, ref dir)           => write!(f, "Rescale({} Pixels, {})", pixels, dir),
-            PageOps::ExpandLeftEdge(pixels)         => write!(f, "ExpandLeftEdge({} Pixels)", pixels),
-            PageOps::ExpandRightEdge(pixels)        => write!(f, "ExpandRightEdge({} Pixels)", pixels),
-            PageOps::ExpandTopEdge(pixels)          => write!(f, "ExpandTopEdge({} Pixels)", pixels),
-            PageOps::ExpandBottomEdge(pixels)       => write!(f, "ExpandBottomEdge({} Pixels)", pixels),
-            PageOps::TrimLeftEdge(pixels)           => write!(f, "TrimLeftEdge({} Pixels)", pixels),
-            PageOps::TrimRightEdge(pixels)          => write!(f, "TrimRightEdge({} Pixels)", pixels),
-            PageOps::TrimTopEdge(pixels)            => write!(f, "TrimTopEdge({} Pixels)", pixels),
-            PageOps::TrimBottomEdge(pixels)         => write!(f, "TrimBottomEdge({} Pixels)", pixels),
-            PageOps::SetResolution(ref res)             => write!(f, "SetResolution({})", res),
+            PageOps::Rescale(pixels, ref dir)               => write!(f, "Rescale({} Pixels, {})", pixels, dir),
+            PageOps::ExpandLeftEdge(pixels)                 => write!(f, "ExpandLeftEdge({} Pixels)", pixels),
+            PageOps::ExpandRightEdge(pixels)                => write!(f, "ExpandRightEdge({} Pixels)", pixels),
+            PageOps::ExpandTopEdge(pixels)                  => write!(f, "ExpandTopEdge({} Pixels)", pixels),
+            PageOps::ExpandBottomEdge(pixels)               => write!(f, "ExpandBottomEdge({} Pixels)", pixels),
+            PageOps::TrimLeftEdge(pixels)                   => write!(f, "TrimLeftEdge({} Pixels)", pixels),
+            PageOps::TrimRightEdge(pixels)                  => write!(f, "TrimRightEdge({} Pixels)", pixels),
+            PageOps::TrimTopEdge(pixels)                    => write!(f, "TrimTopEdge({} Pixels)", pixels),
+            PageOps::TrimBottomEdge(pixels)                 => write!(f, "TrimBottomEdge({} Pixels)", pixels),
+            PageOps::SetResolution(ref res)                 => write!(f, "SetResolution({})", res),
         }
     }
 }
@@ -255,10 +255,28 @@ impl CompoundPageOperation<PageOps> {
     }
 }
 
+impl<Op> fmt::Display for CompoundPageOperation<Op> where Op: Clone + fmt::Display {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut op_string = String::new();
+        let mut last = false;
+
+        for op in self.iter() {
+            if !last {
+                op_string.push_str(op.to_string().as_str());
+                op_string.push_str(", ");
+            } else {
+                op_string.push_str(op.to_string().as_str());
+                last = true;
+            }
+        }
+        
+        write!(f, "PageOps([{}])", op_string)
+    }
+}
+
 
 /// Implementation of CompileOperation for compiling between CompoundPageOperations.
-/// TODO: Cloning feels unnecessary here. CompileOperation may be revised to pass append
-///       nonmutable pointer instead.
 impl<Op, OtherOp> CompileOperation<CompoundPageOperation<Op>, CompoundPageOperation<OtherOp>>
     for CompoundPageOperation<Op> 
         where Op: Clone + CompileOperation<Op, OtherOp>,
@@ -347,11 +365,11 @@ impl<Op> AsRef<[Op]> for CompoundPageOperation<Op> {
 
 #[derive(Clone, Eq, Debug)]
 struct Page {
-    file_name: FileName,
+    file_name:      FileName,
     file_extension: ImageFileFormat,
-    file_path: FilePath,
-    dimensions: ImageDimensions,
-    resolution: ImageResolution,
+    file_path:      FilePath,
+    dimensions:     ImageDimensions,
+    resolution:     ImageResolution,
 }
 
 impl Page {
@@ -391,6 +409,12 @@ impl Hash for Page {
         self.file_path.hash(state);
         self.dimensions.hash(state);
         self.resolution.hash(state);
+    }
+}
+
+impl fmt::Display for Page {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unimplemented!();
     }
 }
 
