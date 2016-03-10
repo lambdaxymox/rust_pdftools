@@ -2,38 +2,17 @@
 use std::io;
 use std::convert::AsRef;
 use super::imagemagick_commands;
+use super::op_types::{ImageMagickOpType};
 use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
 use image_tools::image_ops::ImageResolution;
 use image_tools::image_ops::RunOperation;
 use image_tools::image_ops::OperationResults;
 use image_tools::image_ops::{FileName, FilePath};
-use util::shell;
+use std::string::{String};
 
 
 type ImageMagickArg = String;
 
-
-#[derive(Clone, Debug)]
-enum ImageMagickOpType {
-    Identify,
-    IdentifyVerbose,
-    Mogrify,
-    Convert,
-    NoOperation,
-}
-
-
-impl shell::AsShellCommand for ImageMagickOpType {
-    fn as_shell_command(&self) -> String {
-        match *self {
-            ImageMagickOpType::Identify        => String::from("identify"),
-            ImageMagickOpType::IdentifyVerbose => String::from("identify"),
-            ImageMagickOpType::Mogrify         => String::from("mogrify"),
-            ImageMagickOpType::Convert         => String::from("convert"),
-            ImageMagickOpType::NoOperation     => String::from("echo"),
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 struct ImageMagickArgs {
@@ -123,7 +102,7 @@ impl ImageMagickOperation {
 }
 
 // This implementation will be the generator for the sequence of 
-// ImageMagick commands to implement each operation.
+// ImageMagick commands for each operation.
 impl ElementaryPageOperations for ImageMagickOperation {
 
     fn identify(file_name: FileName, file_path: FilePath) -> ImageMagickOperation {
@@ -209,3 +188,4 @@ impl RunOperation for ImageMagickOperation {
         results
     }
 }
+
