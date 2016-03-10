@@ -1,6 +1,5 @@
 #![allow(dead_code)]
-use std::io::Result as IoResult;
-use std::io::Error  as IoError;
+use std::io;
 use std::convert::AsRef;
 use super::imagemagick_commands;
 use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
@@ -80,7 +79,7 @@ impl ElementaryImageMagickOperation {
         }
     }
 
-    fn run_operation(&self) -> IoResult<String> {
+    fn run_operation(&self) -> io::Result<String> {
         match self.op {
             ImageMagickOpType::Identify        => {
                 imagemagick_commands::imagemagick_identify_default(&self.args.file_path)

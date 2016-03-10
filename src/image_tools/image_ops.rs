@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use std::io::Result as IoResult;
 use std::io;
 use std::error::Error;
 use std::result::Result;
@@ -416,7 +415,7 @@ impl fmt::Display for Page {
 }
 
 
-pub type OperationResult = IoResult<String>;
+pub type OperationResult = io::Result<String>;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 enum OperationStatus {
