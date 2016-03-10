@@ -868,7 +868,9 @@ impl<Op> ExecutePlan<Op> for OperationPlan<Op>
         report
     }
 
-    /// 
+    /// Aborts execution of an operation plan. If the operation plan did not run yet,
+    /// it terminates with an Aborted status. If it was being run, it terminates with a
+    /// Failed status.
     fn abort_plan(&self, result: &mut OperationPlanResult) -> OperationPlanResult {
         unimplemented!();
     }

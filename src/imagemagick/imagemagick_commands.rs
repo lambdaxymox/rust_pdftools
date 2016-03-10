@@ -3,6 +3,7 @@ use std::process::{Command, Output};
 use std::string::{String, ToString};
 use std::ffi::OsString;
 use std::io;
+use std::fmt;
 
 
 pub type FilePath = String;
@@ -16,15 +17,15 @@ enum ImageMagickCommand {
     NoOperation,
 }
 
-// TODO: Redefine ToString as a trait AsShellCommand.
-impl ToString for ImageMagickCommand {
-    fn to_string(&self) -> String {
+
+impl fmt::Display for ImageMagickCommand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ImageMagickCommand::Identify        => "identify".to_string(),
-            ImageMagickCommand::IdentifyVerbose => "identify".to_string(),
-            ImageMagickCommand::Mogrify         => "mogrify".to_string(),
-            ImageMagickCommand::Convert         => "convert".to_string(),
-            ImageMagickCommand::NoOperation     => "".to_string(),
+            ImageMagickCommand::Identify        => write!(f, "Identify"),
+            ImageMagickCommand::IdentifyVerbose => write!(f, "IdentifyVerbose"),
+            ImageMagickCommand::Mogrify         => write!(f, "Mogrify"),
+            ImageMagickCommand::Convert         => write!(f, "Convert"),
+            ImageMagickCommand::NoOperation     => write!(f, "NoOperation"),
         }
     }
 }
@@ -40,15 +41,15 @@ fn imagemagick_command(command_name: ImageMagickCommand,
     }
 
     let output: io::Result<Output> = Command::new(command_name.to_string())
-                                        .args(command_args.as_ref())
-                                        .arg(file_path)
-                                        .output();
+                                            .args(command_args.as_ref())
+                                            .arg(file_path)
+                                            .output();
     
     let result: io::Result<String> = match output {
-        Ok(output) => Ok(String::from_utf8(output.stdout).unwrap()),
-        Err(e)     => Err(e),
-    };
-    
+            Ok(output) => Ok(String::from_utf8(output.stdout).unwrap()),
+            Err(e)     => Err(e),
+        };
+
     result
 }
 
