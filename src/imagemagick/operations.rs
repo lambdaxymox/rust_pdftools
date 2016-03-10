@@ -6,11 +6,11 @@ use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
 use image_tools::image_ops::ImageResolution;
 use image_tools::image_ops::RunOperation;
 use image_tools::image_ops::OperationResults;
+use image_tools::image_ops::{FileName, FilePath};
 
 
 type ImageMagickArg = String;
-pub type FileName = String;
-pub type FilePath = String;
+
 
 #[derive(Clone, Debug)]
 enum ImageMagickOpType {
