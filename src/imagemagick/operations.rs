@@ -1,6 +1,4 @@
 #![allow(dead_code)]
-use std::io;
-use std::convert::AsRef;
 use super::imagemagick_commands;
 use super::op_types::{ImageMagickOpType};
 use image_tools::image_ops::{ElementaryPageOperations, Pixels, Direction};
@@ -9,6 +7,8 @@ use image_tools::image_ops::RunOperation;
 use image_tools::image_ops::OperationResults;
 use image_tools::image_ops::{FileName, FilePath};
 use std::string::{String};
+use std::io;
+use std::convert::AsRef;
 
 
 type ImageMagickArg = String;
@@ -30,6 +30,7 @@ impl ImageMagickArgs {
         }
     }
 }
+
 
 #[derive(Clone, Debug)]
 pub struct ElementaryImageMagickOperation {
