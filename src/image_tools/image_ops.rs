@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 use std::io::Result as IoResult;
+use std::io;
+use std::error::Error;
 use std::result::Result;
 use std::iter::{Iterator, IntoIterator};
 use std::collections::HashMap;
@@ -424,6 +426,18 @@ enum OperationStatus {
     Aborted,        // Operation aborted.
 }
 
+
+impl fmt::Display for OperationStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            OperationStatus::NotExecuted => "NotExecuted".fmt(f),
+            OperationStatus::Completed   => "Completed".fmt(f),
+            OperationStatus::Failed      => "Failed".fmt(f),
+            OperationStatus::Aborted     => "Aborted".fmt(f),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct OperationResults {
     status: OperationStatus,
@@ -535,6 +549,38 @@ impl From<OperationResult> for OperationResults {
 impl AsRef<[OperationResult]> for OperationResults {
     fn as_ref(&self) -> &[OperationResult] {
         self.results.as_ref()
+    }
+}
+
+
+impl fmt::Display for OperationResults {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+
+        let mut output = String::new();
+        output.push_str("OperationResults(");
+        output.push_str("status: ");
+        output.push_str(self.status.to_string().as_ref());
+        output.push_str(", results: [");
+
+        for i in 0..self.results.len()-1 {
+            let res = match &self.results[i] {
+                    &Ok(ref s)  => s.clone(),
+                    &Err(ref e) => String::from(e.description()),
+                };
+
+            output.push_str(res.as_ref());
+            output.push_str(", ");
+        }
+
+        let final_res = match &self.results[self.results.len()-1] {
+            &Ok(ref s) => s.clone(),
+            &Err(ref e) => String::from(e.description()),
+        };
+
+        output.push_str(final_res.as_ref());
+        output.push_str("])");
+
+        write!(f, "{}", output)
     }
 }
 
@@ -657,6 +703,17 @@ enum OperationPlanStatus {
     Aborted,
 }
 
+impl fmt::Display for OperationPlanStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            OperationPlanStatus::NotCompleted => "NotCompleted".fmt(f),
+            OperationPlanStatus::Completed    => "Completed".fmt(f),
+            OperationPlanStatus::Failed       => "Failed".fmt(f),
+            OperationPlanStatus::Aborted      => "Aborted".fmt(f),
+        }
+    }
+}
+
 
 #[derive(Debug)]
 struct OperationPlanResult {
@@ -766,10 +823,30 @@ impl Iterator for OpPlanResultIntoIter {
 }
 
 
+impl fmt::Display for OperationPlanResult {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        output.push_str("Operation Results: \n");
+        output.push_str("STATUS: ");
+        output.push_str(self.status.to_string().as_ref());
+        output.push('\n');
+
+        for (page, res) in self.iter() {
+            output.push_str(page.file_name.as_ref());
+            output.push_str(": ");
+            output.push_str(res.to_string().as_ref());
+            output.push('\n');
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+
 trait ExecutePlan<OpType> where OpType: RunOperation {
     type ExecutionResult;
 
-    fn execute_plan(&self)                               -> Self::ExecutionResult;
+    fn execute_plan(&self)                                   -> Self::ExecutionResult;
     fn abort_plan(&self, result: &mut Self::ExecutionResult) -> Self::ExecutionResult;
 }
 
