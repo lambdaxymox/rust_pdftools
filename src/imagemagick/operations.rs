@@ -7,6 +7,7 @@ use image_tools::image_ops::ImageResolution;
 use image_tools::image_ops::RunOperation;
 use image_tools::image_ops::OperationResults;
 use image_tools::image_ops::{FileName, FilePath};
+use util::shell;
 
 
 type ImageMagickArg = String;
@@ -21,11 +22,8 @@ enum ImageMagickOpType {
     NoOperation,
 }
 
-trait AsShellCommand {
-    fn as_shell_command(&self) -> String;
-}
 
-impl AsShellCommand for ImageMagickOpType {
+impl shell::AsShellCommand for ImageMagickOpType {
     fn as_shell_command(&self) -> String {
         match *self {
             ImageMagickOpType::Identify        => String::from("identify"),
