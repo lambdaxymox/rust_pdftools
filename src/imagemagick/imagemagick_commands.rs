@@ -6,8 +6,6 @@ use std::io;
 use std::fmt;
 use image_tools::image_ops::{FileName, FilePath};
 
-//pub type FilePath = String;
-//type FileName = String;
 
 enum ImageMagickCommand {
     Identify,
